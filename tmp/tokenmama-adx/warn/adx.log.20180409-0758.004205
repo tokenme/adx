@@ -1,0 +1,9 @@
+File opened at: 2018/04/09 07:58:35
+Built with gc go1.10 for linux/amd64
+[W 2018/04/09 07:58:35.544 email.go:85] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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
+[W 2018/04/09 08:00:10.349 email.go:85] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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
+[W 2018/04/09 08:00:10.349 email.go:85] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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
+[W 2018/04/09 08:00:10.349 email.go:85] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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
+[W 2018/04/09 08:00:40.352 email.go:85] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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
+[W 2018/04/09 08:00:40.352 email.go:85] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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
+[W 2018/04/09 08:00:40.352 email.go:85] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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

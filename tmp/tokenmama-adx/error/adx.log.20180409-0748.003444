@@ -1,0 +1,4 @@
+File opened at: 2018/04/09 07:48:19
+Built with gc go1.10 for linux/amd64
+[E 2018/04/09 07:48:19.942 email.go:88] 535 Authentication failed: Bad username / password
+[E 2018/04/09 07:48:50.120 email.go:88] 535 Authentication failed: Bad username / password

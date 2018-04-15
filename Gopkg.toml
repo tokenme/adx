@@ -25,6 +25,11 @@
 #   unused-packages = true
 
 
+required = ["github.com/davecgh/go-spew/spew"]
+
+[metadata]
+codename = "tokenmama-adx"
+
 [prune]
   go-tests = true
   unused-packages = true

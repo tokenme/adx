@@ -1,0 +1,5 @@
+File opened at: 2018/04/09 10:27:14
+Built with gc go1.10 for linux/amd64
+[I 2018/04/09 10:27:14.667 main.go:72] Static UI path: /opt/go/src/github.com/tokenme/adx/opt/adx-ui
+[I 2018/04/09 10:27:14.667 main.go:74] tokenmama-adx started at:0.0.0.0:8005
+[I 2018/04/09 10:27:24.746 main.go:89] tokenmama-adx exit from:0.0.0.0:8005

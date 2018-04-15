@@ -1,0 +1,4 @@
+File opened at: 2018/04/09 08:02:55
+Built with gc go1.10 for linux/amd64
+[W 2018/04/09 08:02:55.035 email.go:84] HOST:smtp.sendgrid.net, Port:456, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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, To:prof.syd.xu@gmail.com
+[W 2018/04/09 08:02:55.035 email.go:86] Dailed, before send

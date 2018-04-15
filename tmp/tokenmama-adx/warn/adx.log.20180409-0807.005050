@@ -1,0 +1,11 @@
+File opened at: 2018/04/09 08:07:32
+Built with gc go1.10 for linux/amd64
+[W 2018/04/09 08:07:32.726 email.go:84] HOST:smtp.sendgrid.net, Port:465, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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, To:prof.syd.xu@gmail.com
+[W 2018/04/09 08:07:32.726 email.go:86] Dailed, before send
+[W 2018/04/09 08:07:33.574 email.go:89] DialAndSent
+[W 2018/04/09 08:08:03.613 email.go:84] HOST:smtp.sendgrid.net, Port:465, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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, To:prof.syd.xu@gmail.com
+[W 2018/04/09 08:08:03.613 email.go:86] Dailed, before send
+[W 2018/04/09 08:08:03.757 email.go:89] DialAndSent
+[W 2018/04/09 08:09:03.829 email.go:84] HOST:smtp.sendgrid.net, Port:465, User:eq9xSlvuSCeC1ow1q1xECA, Passwd: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, To:prof.syd.xu@gmail.com
+[W 2018/04/09 08:09:03.829 email.go:86] Dailed, before send
+[W 2018/04/09 08:09:03.959 email.go:89] DialAndSent
