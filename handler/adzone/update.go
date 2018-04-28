@@ -12,12 +12,14 @@ import (
 )
 
 type UpdateRequest struct {
-	Id           uint64  `form:"id" json:"id"`
-	Url          string  `form:"url" json:"url"`
-	Desc         string  `form:"desc" json:"desc"`
-	Rolling      uint    `form:"rolling" json:"rolling"`
-	MinCPT       float64 `from:"min_cpt" json:"min_cpt"`
-	OnlineStatus uint    `form:"online_status" json:"online_status"`
+	Id             uint64  `form:"id" json:"id"`
+	Url            string  `form:"url" json:"url"`
+	Desc           string  `form:"desc" json:"desc"`
+	Rolling        uint    `form:"rolling" json:"rolling"`
+	MinCPT         float64 `from:"min_cpt" json:"min_cpt"`
+	OnlineStatus   uint    `form:"online_status" json:"online_status"`
+	PlaceholderUrl string  `form:"placeholder_url" json:"placeholder_url"`
+	PlaceholderImg string  `form:"placeholder_img" json:"placeholder_img"`
 }
 
 func UpdateHandler(c *gin.Context) {
@@ -49,10 +51,13 @@ func UpdateHandler(c *gin.Context) {
 		set = append(set, fmt.Sprintf("intro='%s'", db.Escape(desc)))
 	}
 
-	if url != "" {
-		set = append(set, fmt.Sprintf("url='%s'", db.Escape(url)))
+	if req.Url != "" {
+		set = append(set, fmt.Sprintf("url='%s'", db.Escape(req.Url)))
 	}
 
+	if req.PlaceholderUrl != "" && req.PlaceholderImg != "" {
+		set = append(set, fmt.Sprintf("placeholder_url='%s', placeholder_img='%s'", db.Escape(req.PlaceholderUrl), db.Escape(req.PlaceholderImg)))
+	}
 	_, _, err := db.Query(`UPDATE adx.adzones SET %s WHERE id=%d AND user_id=%d`, strings.Join(set, ","), req.Id, user.Id)
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)

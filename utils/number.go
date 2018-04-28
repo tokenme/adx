@@ -33,6 +33,16 @@ func RangeRandUint64(from uint64, to uint64) uint64 {
 	return uint64(rand.Int63n(int64(to+1-from))) + from
 }
 
+func RangeRandInt(from int, to int) int {
+	if from == to {
+		return to
+	}
+	if from > to {
+		from, to = to, from
+	}
+	return rand.Intn(to+1-from) + from
+}
+
 func Pow10(n int) *big.Int {
 	return new(big.Int).SetUint64(uint64(math.Pow10(n)))
 }

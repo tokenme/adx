@@ -1,8 +1,14 @@
 package common
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/tokenme/adx/coins/eth"
 	"github.com/tokenme/adx/utils"
+	"math/big"
 )
 
 type User struct {
@@ -15,6 +21,7 @@ type User struct {
 	Avatar         string        `json:"avatar,omitempty"`
 	Salt           string        `json:"-"`
 	Password       string        `json:"-"`
+	Wallet         string        `json:"wallet,omitempty"`
 	IsAdmin        uint          `json:"is_admin,omitempty"`
 	IsPublisher    uint          `json:"is_publisher,omitempty"`
 	IsAdvertiser   uint          `json:"is_advertiser,omitempty"`
@@ -44,4 +51,88 @@ func (this User) GetAvatar(cdn string) string {
 	}
 	key := utils.Md5(this.Email)
 	return fmt.Sprintf("%suser/avatar/%s", cdn, key)
+}
+
+func (this User) Balance(ctx context.Context, service *Service, config Config) (*big.Int, error) {
+	query := `SELECT
+		uw.user_id ,
+		uw.salt,
+		uw.wallet,
+		SUM( IFNULL(d.eth, 0) ) AS deposit
+	FROM
+		adx.user_wallets AS uw
+		LEFT JOIN adx.deposits AS d ON (d.user_id = uw.user_id)
+	WHERE
+		uw.user_id = %d
+	AND uw.token_type = 'ETH'
+	AND uw.is_main = 1
+	GROUP BY
+		user_id`
+	db := service.Db
+	rows, _, err := db.Query(query, this.Id)
+	if err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return nil, errors.New("not found")
+	}
+	row := rows[0]
+	salt := row.Str(1)
+	wallet := row.Str(2)
+	deposit := new(big.Int).SetUint64(uint64(row.ForceFloat(3) * params.Ether))
+	privateKey, err := utils.AddressDecrypt(wallet, salt, config.TokenSalt)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := eth.AddressFromHexPrivateKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	balance, err := service.Geth.BalanceAt(ctx, ethcommon.HexToAddress(publicKey), nil)
+	if err != nil {
+		return nil, err
+	}
+	balance = new(big.Int).Add(balance, deposit)
+
+	if this.IsAdvertiser == 1 {
+		query := `SELECT
+			user_id ,
+			SUM( price ) AS cost
+		FROM
+			adx.private_auctions
+		WHERE
+			audit_status < 2
+		AND user_id = %d
+		GROUP BY
+			user_id`
+		rows, _, err := db.Query(query, this.Id)
+		if err != nil {
+			return nil, err
+		}
+		if len(rows) > 0 {
+			cost := new(big.Int).SetUint64(uint64(rows[0].ForceFloat(1) * params.Ether))
+			balance = new(big.Int).Sub(balance, cost)
+		}
+	} else if this.IsPublisher == 1 {
+		query := `SELECT
+			a.user_id ,
+			SUM( pa.price ) AS income
+		FROM
+			adx.private_auctions AS pa
+		INNER JOIN adx.adzones AS a ON (a.id = pa.adzone_id)
+		WHERE
+			pa.audit_status = 1
+		AND a.user_id = %d
+		GROUP BY
+			a.user_id`
+		rows, _, err := db.Query(query, this.Id)
+		if err != nil {
+			return nil, err
+		}
+		if len(rows) > 0 {
+			income := new(big.Int).SetUint64(uint64(rows[0].ForceFloat(1) * params.Ether))
+			balance = new(big.Int).Add(balance, income)
+		}
+	}
+	return balance, nil
 }

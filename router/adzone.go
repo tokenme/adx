@@ -11,6 +11,8 @@ func adzoneRouter(r *gin.Engine) {
 	{
 		adzoneGroup.POST("/add", adzone.AddHandler)
 		adzoneGroup.GET("/list", adzone.ListHandler)
+		adzoneGroup.GET("/info", adzone.InfoHandler)
+		adzoneGroup.GET("/search", adzone.SearchHandler)
 		adzoneGroup.POST("/update", adzone.UpdateHandler)
 		//adzoneGroup.GET("/info", adzone.InfoHandler)
 	}

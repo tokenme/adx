@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mkideal/log"
 	"github.com/tokenme/adx/common"
+	adServer "github.com/tokenme/adx/tools/ad/server"
 	"github.com/tokenme/adx/tools/sqs"
 	"net"
 	"net/http"
@@ -15,15 +16,21 @@ import (
 )
 
 var (
-	Service    *common.Service
-	Config     common.Config
-	EmailQueue *sqs.EmailQueue
+	Service      *common.Service
+	Config       common.Config
+	EmailQueue   *sqs.EmailQueue
+	AdClickQueue *sqs.AdClickQueue
+	AdImpQueue   *sqs.AdImpQueue
+	AdServer     *adServer.Server
 )
 
-func InitHandler(s *common.Service, c common.Config, emailQueue *sqs.EmailQueue) {
+func InitHandler(s *common.Service, c common.Config, ad *adServer.Server, emailQueue *sqs.EmailQueue, adClickQueue *sqs.AdClickQueue, adImpQueue *sqs.AdImpQueue) {
 	Service = s
 	Config = c
+	AdServer = ad
 	EmailQueue = emailQueue
+	AdClickQueue = adClickQueue
+	AdImpQueue = adImpQueue
 	raven.SetDSN(Config.SentryDSN)
 }
 
@@ -34,15 +41,16 @@ type APIResponse struct {
 type ErrorCode uint
 
 const (
-	BADREQUEST_ERROR       ErrorCode = 400
-	INTERNAL_ERROR         ErrorCode = 500
-	NOTFOUND_ERROR         ErrorCode = 404
-	UNAUTHORIZED_ERROR     ErrorCode = 401
-	INVALID_PASSWD_ERROR   ErrorCode = 409
-	DUPLICATE_USER_ERROR   ErrorCode = 202
-	UNACTIVATED_USER_ERROR ErrorCode = 502
-	DUPLICATE_MEDIA_ERROR  ErrorCode = 402
-	UNVERIFIED_MEDIA_ERROR ErrorCode = 405
+	BADREQUEST_ERROR        ErrorCode = 400
+	INTERNAL_ERROR          ErrorCode = 500
+	NOTFOUND_ERROR          ErrorCode = 404
+	UNAUTHORIZED_ERROR      ErrorCode = 401
+	INVALID_PASSWD_ERROR    ErrorCode = 409
+	DUPLICATE_USER_ERROR    ErrorCode = 202
+	UNACTIVATED_USER_ERROR  ErrorCode = 502
+	DUPLICATE_MEDIA_ERROR   ErrorCode = 402
+	UNVERIFIED_MEDIA_ERROR  ErrorCode = 405
+	NO_ENOUGH_BALANCE_ERROR ErrorCode = 600
 )
 
 type APIError struct {
@@ -119,4 +127,19 @@ func ClientIP(c *gin.Context) string {
 		return ip
 	}
 	return ""
+}
+
+func IP2Long(IpStr string) (int64, error) {
+	bits := strings.Split(IpStr, ".")
+	if len(bits) != 4 {
+		return 0, errors.New("ip format error")
+	}
+
+	var sum int64
+	for i, n := range bits {
+		bit, _ := strconv.ParseInt(n, 10, 64)
+		sum += bit << uint(24-8*i)
+	}
+
+	return sum, nil
 }

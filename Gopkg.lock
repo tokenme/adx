@@ -39,7 +39,9 @@
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
+    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
+    "service/s3",
     "service/sqs",
     "service/sts"
   ]
@@ -69,12 +71,6 @@
   packages = ["."]
   revision = "deb3ae2ef2610fde3330947281941c562861188b"
   version = "2018.01.18"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/danielkov/gin-helmet"
-  packages = ["."]
-  revision = "1387e224435edcb84dfc4bfc81fe56fc807ca98b"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -230,6 +226,20 @@
   revision = "0b12d6b5"
 
 [[projects]]
+  name = "github.com/kshvakov/clickhouse"
+  packages = [
+    ".",
+    "lib/binary",
+    "lib/column",
+    "lib/data",
+    "lib/protocol",
+    "lib/types",
+    "lib/writebuffer"
+  ]
+  revision = "8a2dd1e831a6c7381c11d40bcaf80ae98023c605"
+  version = "v1.3.3"
+
+[[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
@@ -295,6 +305,12 @@
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
+
+[[projects]]
+  name = "github.com/rakyll/magicmime"
+  packages = ["."]
+  revision = "9b99294d6b2216897632b9734769d8ce4568681e"
+  version = "v0.1.0"
 
 [[projects]]
   branch = "master"
@@ -486,6 +502,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3aed9b53a4eea124dbbba6ef63c125dc0e74ba9240213300ca1c8ad9f231dbdf"
+  inputs-digest = "7264373f30cd48a7ae438c499c64c22d4f71b1bc13c8da323883e1026296a56b"
   solver-name = "gps-cdcl"
   solver-version = 1

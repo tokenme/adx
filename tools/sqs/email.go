@@ -11,6 +11,14 @@ import (
 	"net/url"
 )
 
+type EmailMessage struct {
+	Type         MsgType `codec:"type"`
+	Email        string  `codec:"email"`
+	Code         string  `codec:"code"`
+	IsPublisher  uint    `code:"is_publisher"`
+	IsAdvertiser uint    `code:"is_advertiser"`
+}
+
 type EmailQueue struct {
 	Service   *common.Service
 	Config    common.Config
@@ -18,7 +26,7 @@ type EmailQueue struct {
 	Processor *msgqueue.Processor
 }
 
-func NewEmailQueue(service *common.Service, config common.Config) *EmailQueue {
+func NewEmailQueue(m msgqueue.Manager, service *common.Service, config common.Config) *EmailQueue {
 	queue := &EmailQueue{
 		Service: service,
 		Config:  config,
@@ -27,7 +35,7 @@ func NewEmailQueue(service *common.Service, config common.Config) *EmailQueue {
 		Name:    config.SQS.EmailQueue,
 		Handler: queue.Handler,
 	}
-	q := NewQueue(config.SQS, opt)
+	q := m.NewQueue(opt)
 	queue.Queue = q
 	queue.Processor = q.Processor()
 	return queue
@@ -42,14 +50,14 @@ func (this *EmailQueue) Stop() {
 }
 
 func (this *EmailQueue) NewRegister(user common.User) error {
-	return this.Queue.Call(Message{Type: RegisterMsg, Email: user.Email, Code: user.ActivationCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser})
+	return this.Queue.Call(EmailMessage{Type: RegisterMsg, Email: user.Email, Code: user.ActivationCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser})
 }
 
 func (this *EmailQueue) NewResetPwd(user common.User) error {
-	return this.Queue.Call(Message{Type: ResetPwdMsg, Email: user.Email, Code: user.ResetPwdCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser})
+	return this.Queue.Call(EmailMessage{Type: ResetPwdMsg, Email: user.Email, Code: user.ResetPwdCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser})
 }
 
-func (this *EmailQueue) Handler(msg Message) error {
+func (this *EmailQueue) Handler(msg EmailMessage) error {
 	var (
 		subject string
 		body    string

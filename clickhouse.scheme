@@ -1,0 +1,57 @@
+DROP DATABASE adx;
+CREATE DATABASE IF NOT EXISTS adx;
+
+CREATE TABLE adx.reqs_local (
+    LogDate Date,
+    LogTime DateTime,
+    ReqId String,
+    CreativeId UInt64,
+    AuctionId UInt64,
+    AdzoneId UInt64,
+    MediaId UInt64,
+    SizeId UInt64,
+    AdvertiserId UInt64,
+    PublisherId UInt64,
+    IP Int64,
+    Cookie String,
+    Link String,
+    Referrer String,
+    ScreenSize String,
+    AdSize String,
+    OsName String,
+    OsVersion String,
+    BrowserName String,
+    BrowserVersion String,
+    BrowserType UInt16,
+    CountryId UInt32,
+    CountryName String,
+    UserAgent String) ENGINE = ReplicatedMergeTree('/clickhouse/tb/{shard}/reqs', '{replica}', LogDate, sipHash64(ReqId), (LogTime, sipHash64(ReqId)), 8192);
+CREATE TABLE IF NOT EXISTS adx.reqs AS adx.reqs_local ENGINE = Distributed(tm_shard, adx, reqs_local, rand());
+
+CREATE TABLE adx.clicks_local (
+    LogDate Date,
+    LogTime DateTime,
+    ReqId String,
+    CreativeId UInt64,
+    AuctionId UInt64,
+    AdzoneId UInt64,
+    MediaId UInt64,
+    SizeId UInt64,
+    AdvertiserId UInt64,
+    PublisherId UInt64,
+    IP Int64,
+    Cookie String,
+    Link String,
+    Referrer String,
+    ScreenSize String,
+    AdSize String,
+    OsName String,
+    OsVersion String,
+    BrowserName String,
+    BrowserVersion String,
+    BrowserType UInt16,
+    CountryId UInt32,
+    CountryName String,
+    UserAgent String) ENGINE = ReplicatedMergeTree('/clickhouse/tb/{shard}/clicks', '{replica}', LogDate, sipHash64(ReqId), (LogTime, sipHash64(ReqId)), 8192);
+CREATE TABLE IF NOT EXISTS adx.clicks AS adx.clicks_local ENGINE = Distributed(tm_shard, adx, clicks_local, rand());
+

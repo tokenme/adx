@@ -1,9 +1,12 @@
 package common
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/garyburd/redigo/redis"
+	_ "github.com/kshvakov/clickhouse"
+	"github.com/mkideal/log"
 	"github.com/nlopes/slack"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/ziutek/mymysql/autorc"
@@ -26,12 +29,13 @@ type RedisConn struct {
 
 // Service struct provide i/o resources for application
 type Service struct {
-	Db        *autorc.Conn      `json:"-"`
-	Redis     *RedisConn        `json:"-"`
-	redisConf *RedisConf        `json:"-"`
-	Geth      *ethclient.Client `json:"-"`
-	GeoIP     *geoip2.Reader    `json:"-"`
-	Slack     *slack.Client     `json:"-"`
+	Db         *autorc.Conn      `json:"-"`
+	Redis      *RedisConn        `json:"-"`
+	redisConf  *RedisConf        `json:"-"`
+	Geth       *ethclient.Client `json:"-"`
+	GeoIP      *geoip2.Reader    `json:"-"`
+	Slack      *slack.Client     `json:"-"`
+	Clickhouse *sql.DB           `json:"-"`
 }
 
 func NewService(config Config) *Service {
@@ -46,12 +50,16 @@ func NewService(config Config) *Service {
 	service.RedisPool(config.Redis.Master, config.Redis.Slave, 10, 120)
 	service.NewGeth(config.Geth)
 	service.NewGeoIP(config.GeoIP)
+	service.NewClickhouse(config.ClickhouseDSN)
 	service.NewSlack(config.SlackToken)
 	return service
 }
 
 func (this *Service) Close() {
 	this.CloseRedisPool()
+	if this.Clickhouse != nil {
+		this.Clickhouse.Close()
+	}
 }
 
 func (this *Service) NewGeth(ipcLocation string) (*ethclient.Client, error) {
@@ -75,6 +83,20 @@ func (this *Service) NewGeoIP(geoipFile string) (*geoip2.Reader, error) {
 func (this *Service) NewSlack(token string) *slack.Client {
 	this.Slack = slack.New(token)
 	return this.Slack
+}
+
+func (this *Service) NewClickhouse(clickhouseDSN string) (*sql.DB, error) {
+	clickhouseDb, err := sql.Open("clickhouse", clickhouseDSN)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	if err := clickhouseDb.Ping(); err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	this.Clickhouse = clickhouseDb
+	return clickhouseDb, nil
 }
 
 func newRedisPool(server string, maxIdle int, idleTime time.Duration) *redis.Pool {

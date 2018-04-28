@@ -1,6 +1,7 @@
 package media
 
 import (
+	"fmt"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 	"github.com/tokenme/adx/common"
@@ -23,12 +24,14 @@ func InfoHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1, "unauthorized", c) {
-		return
-	}
-
 	db := Service.Db
-	rows, _, err := db.Query(`SELECT id, title, domain, intro, salt, verified, online_status, inserted_at, updated_at FROM adx.medias WHERE id=%d AND user_id=%d LIMIT 1`, req.Id, user.Id)
+	var query string
+	if user.IsPublisher == 1 {
+		query = fmt.Sprintf(`SELECT id, title, domain, intro, salt, verified, online_status, inserted_at, updated_at FROM adx.medias WHERE id=%d AND user_id=%d LIMIT 1`, req.Id, user.Id)
+	} else {
+		query = fmt.Sprintf(`SELECT id, title, domain, intro, salt, verified, online_status, inserted_at, updated_at FROM adx.medias WHERE id=%d LIMIT 1`, req.Id)
+	}
+	rows, _, err := db.Query(query)
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
 		return
@@ -49,8 +52,9 @@ func InfoHandler(c *gin.Context) {
 		InsertedAt:   row.ForceLocaltime(7),
 		UpdatedAt:    row.ForceLocaltime(8),
 	}
-	media = media.Complete()
-
+	if user.IsPublisher == 1 {
+		media = media.Complete()
+	}
 	c.JSON(http.StatusOK, media)
 	return
 

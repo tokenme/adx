@@ -12,6 +12,7 @@ import (
 	"github.com/tokenme/adx/common"
 	"github.com/tokenme/adx/handler"
 	"github.com/tokenme/adx/router"
+	adServer "github.com/tokenme/adx/tools/ad/server"
 	"github.com/tokenme/adx/tools/gc"
 	"github.com/tokenme/adx/tools/sqs"
 	"os"
@@ -22,23 +23,24 @@ import (
 )
 
 var (
-	configFlag = flag.String("config", "config.yml", "configuration file")
+	configFlag = flag.String("config", "config.toml", "configuration file")
 )
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	var config common.Config
 
+	os.Setenv("CONFIGOR_ENV_PREFIX", "-")
+	configor.New(&configor.Config{Verbose: true, ErrorOnUnmatchedKeys: true, Environment: "production"}).Load(&config, *configFlag)
+
 	flag.IntVar(&config.Port, "port", 8005, "set port")
 	flag.StringVar(&config.UI, "ui", "./ui/dist", "set web static file path")
 	flag.StringVar(&config.LogPath, "log", "/tmp/tokenmama-adx", "set log file path without filename")
 	flag.BoolVar(&config.Debug, "debug", false, "set debug mode")
 	flag.BoolVar(&config.EnableWeb, "web", false, "enable http web server")
+	flag.BoolVar(&config.EnableAdServer, "ad", false, "enable ad server")
 	flag.BoolVar(&config.EnableGC, "gc", false, "enable gc")
 	flag.Parse()
-
-	os.Setenv("CONFIGOR_ENV_PREFIX", "-")
-	configor.Load(&config, *configFlag)
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -58,15 +60,24 @@ func main() {
 	defer service.Close()
 	service.Db.Reconnect()
 
-	emailQueue := sqs.NewEmailQueue(service, config)
+	AdServer := adServer.New(service, config)
+	queueManager := sqs.NewManager(config.SQS)
+	emailQueue := sqs.NewEmailQueue(queueManager, service, config)
 	emailQueue.Start()
 	gcHandler := gc.New(service, config)
 	if config.EnableGC {
 		go gcHandler.Start()
 	}
 
+	adClickQueue := sqs.NewAdClickQueue(queueManager, service, config)
+	adImpQueue := sqs.NewAdImpQueue(queueManager, service, config)
+	if config.EnableAdServer {
+		adClickQueue.Start()
+		adImpQueue.Start()
+		go AdServer.Start()
+	}
 	if config.EnableWeb {
-		handler.InitHandler(service, config, emailQueue)
+		handler.InitHandler(service, config, AdServer, emailQueue, adClickQueue, adImpQueue)
 		if config.Debug {
 			gin.SetMode(gin.DebugMode)
 		} else {
@@ -95,5 +106,10 @@ func main() {
 		}()
 		<-exitChan
 	}
+	if config.EnableAdServer {
+		adClickQueue.Stop()
+		adImpQueue.Stop()
+	}
+	AdServer.Stop()
 	emailQueue.Stop()
 }

@@ -24,7 +24,7 @@ var AuthMiddleware = &jwt.GinJWTMiddleware{
 	Authorizator:  auth.AuthorizatorFunc,
 	Unauthorized: func(c *gin.Context, code int, message string) {
 		c.JSON(code, gin.H{
-			"code":    code,
+			"code":    401,
 			"message": message,
 		})
 	},

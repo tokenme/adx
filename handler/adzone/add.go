@@ -10,13 +10,15 @@ import (
 )
 
 type AddRequest struct {
-	MediaId    uint64  `form:"media_id" json:"media_id" binding:"required"`
-	SizeId     uint    `form:"size_id" json:"size_id" binding:"required"`
-	MinCPT     float64 `form:"min_cpt" json:"min_cpt" binding:"required"`
-	Rolling    uint    `form:"rolling" json:"rolling" binding:"required"`
-	Settlement uint    `form:"settlement" json:"settlement" binding:"required"`
-	Url        string  `form:"url" json:"url" binding:"required"`
-	Desc       string  `form:"desc" json:"desc" binding:"required"`
+	MediaId        uint64  `form:"media_id" json:"media_id" binding:"required"`
+	SizeId         uint    `form:"size_id" json:"size_id" binding:"required"`
+	MinCPT         float64 `form:"min_cpt" json:"min_cpt" binding:"required"`
+	Rolling        uint    `form:"rolling" json:"rolling" binding:"required"`
+	Settlement     uint    `form:"settlement" json:"settlement" binding:"required"`
+	Url            string  `form:"url" json:"url" binding:"required"`
+	Desc           string  `form:"desc" json:"desc" binding:"required"`
+	PlaceholderUrl string  `form:"placeholder_url" json:"placeholder_url"`
+	PlaceholderImg string  `form:"placeholder_img" json:"placeholder_img"`
 }
 
 func AddHandler(c *gin.Context) {
@@ -44,7 +46,12 @@ func AddHandler(c *gin.Context) {
 	}
 	mediaUserId := rows[0].Uint64(0)
 	desc := utils.Normalize(req.Desc)
-	_, _, err = db.Query(`INSERT INTO adx.adzones (user_id, media_id, size_id, min_cpt, settlement, rolling, url, intro) VALUES (%d, %d, %d, %.18f, %d, %d, '%s', '%s')`, mediaUserId, req.MediaId, req.SizeId, req.MinCPT, req.Settlement, req.Rolling, db.Escape(req.Url), db.Escape(desc))
+	if req.PlaceholderImg != "" && req.PlaceholderUrl != "" {
+		_, _, err = db.Query(`INSERT INTO adx.adzones (user_id, media_id, size_id, min_cpt, settlement, rolling, url, intro, placeholder_url, placeholder_img) VALUES (%d, %d, %d, %.18f, %d, %d, '%s', '%s', '%s', '%s')`, mediaUserId, req.MediaId, req.SizeId, req.MinCPT, req.Settlement, req.Rolling, db.Escape(req.Url), db.Escape(desc), db.Escape(req.PlaceholderUrl), db.Escape(req.PlaceholderImg))
+	} else {
+		_, _, err = db.Query(`INSERT INTO adx.adzones (user_id, media_id, size_id, min_cpt, settlement, rolling, url, intro) VALUES (%d, %d, %d, %.18f, %d, %d, '%s', '%s')`, mediaUserId, req.MediaId, req.SizeId, req.MinCPT, req.Settlement, req.Rolling, db.Escape(req.Url), db.Escape(desc))
+	}
+
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
 		return

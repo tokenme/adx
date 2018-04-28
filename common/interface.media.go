@@ -40,7 +40,7 @@ func (this Media) GetVerifyDNS() string {
 }
 
 func (this Media) GetDNSValue() string {
-	return fmt.Sprintf("%s.dns.tokenmama.io", this.Identity)
+	return "dnsverify.tokenmama.io"
 }
 
 func (this Media) GetVerifyURL() string {

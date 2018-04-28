@@ -52,7 +52,6 @@ func VerifyHandler(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		fmt.Println(domainName)
 		if strings.TrimRight(domainName, ".") == media.DNSValue {
 			verified = true
 		}

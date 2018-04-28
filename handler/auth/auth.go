@@ -7,6 +7,7 @@ import (
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 	"github.com/mkideal/log"
+	"github.com/tokenme/adx/coins/eth"
 	"github.com/tokenme/adx/common"
 	. "github.com/tokenme/adx/handler"
 	"github.com/tokenme/adx/middlewares/jwt"
@@ -41,18 +42,21 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		return loginInfo.Email, false
 	}
 	query := `SELECT 
-                id, 
-                email, 
-                salt, 
-                passwd,
-                telegram_id,
-                telegram_username,
-                telegram_firstname,
-                telegram_lastname,
-                telegram_avatar
-            FROM adx.users
+                u.id, 
+                u.email, 
+                u.salt, 
+                u.passwd,
+                u.telegram_id,
+                u.telegram_username,
+                u.telegram_firstname,
+                u.telegram_lastname,
+                u.telegram_avatar,
+                uw.salt,
+                uw.wallet
+            FROM adx.users AS u
+            INNER JOIN adx.user_wallets AS uw ON (uw.user_id = u.id AND uw.is_main = 1 AND uw.token_type='ETH')
             WHERE %s
-            AND active = 1
+            AND u.active = 1
             LIMIT 1`
 	rows, _, err := db.Query(query, where)
 	if err != nil || len(rows) == 0 {
@@ -76,6 +80,17 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		}
 		user.Telegram = telegram
 	}
+	walletSalt := row.Str(9)
+	walletEncrypt := row.Str(10)
+	privateKey, err := utils.AddressDecrypt(walletEncrypt, walletSalt, Config.TokenSalt)
+	if err != nil {
+		return loginInfo.Email, false
+	}
+	publicKey, err := eth.AddressFromHexPrivateKey(privateKey)
+	if err != nil {
+		return loginInfo.Email, false
+	}
+	user.Wallet = publicKey
 	if loginInfo.IsPublisher == 1 {
 		user.IsPublisher = 1
 	} else if loginInfo.IsAdvertiser == 1 {

@@ -24,6 +24,14 @@ var (
 	ErrInvalidPKCS7Padding = errors.New("invalid padding on input")
 )
 
+func UUID() (string, error) {
+	token, err := uuid.NewV4()
+	if err != nil {
+		return "", err
+	}
+	return token.String(), nil
+}
+
 func Salt() (string, error) {
 	token, err := uuid.NewV4()
 	if err != nil {

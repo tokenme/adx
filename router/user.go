@@ -10,6 +10,7 @@ func userRouter(r *gin.Engine) {
 	userGroup.Use(AuthMiddleware.MiddlewareFunc())
 	{
 		userGroup.GET("/info", user.InfoGetHandler)
+		userGroup.GET("/balance", user.BalanceHandler)
 	}
 	r.GET("/user/activate", user.ActivateHandler)
 	r.GET("/user/reset-pwd-verify", user.ResetPwdVerifyHandler)
