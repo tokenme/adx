@@ -136,3 +136,31 @@ func (this User) Balance(ctx context.Context, service *Service, config Config) (
 	}
 	return balance, nil
 }
+
+func (this User) ETHBalance(ctx context.Context, service *Service, config Config) (*big.Int, error) {
+	privateKey, err := utils.AddressDecrypt(this.Wallet, this.Salt, config.TokenSalt)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := eth.AddressFromHexPrivateKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	return service.Geth.BalanceAt(ctx, ethcommon.HexToAddress(publicKey), nil)
+}
+
+func (this User) TokenBalance(ctx context.Context, service *Service, config Config, tokenAddress string) (*big.Int, error) {
+	token, err := eth.NewToken(ethcommon.HexToAddress(tokenAddress), service.Geth)
+	if err != nil {
+		return nil, err
+	}
+	privateKey, err := utils.AddressDecrypt(this.Wallet, this.Salt, config.TokenSalt)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := eth.AddressFromHexPrivateKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	return token.BalanceOf(nil, ethcommon.HexToAddress(publicKey))
+}

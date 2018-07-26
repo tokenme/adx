@@ -46,6 +46,36 @@ var AuthMiddleware = &jwt.GinJWTMiddleware{
 	TimeFunc: time.Now,
 }
 
+func AuthCheckerFunc() gin.HandlerFunc {
+	if err := AuthMiddleware.MiddlewareInit(); err != nil {
+		return func(c *gin.Context) {
+			c.Next()
+			return
+		}
+	}
+
+	return func(c *gin.Context) {
+		token, err := AuthMiddleware.ParseToken(c)
+
+		if err != nil {
+			c.Next()
+			return
+		}
+
+		claims := token.Claims.(jwt.MapClaims)
+
+		id := AuthMiddleware.IdentityHandler(claims)
+		c.Set("JWT_PAYLOAD", claims)
+		c.Set("userID", id)
+
+		AuthMiddleware.Authorizator(id, c)
+
+		c.Next()
+
+		return
+	}
+}
+
 func authRouter(r *gin.Engine) {
 
 	r.POST("/login", AuthMiddleware.LoginHandler)

@@ -7,7 +7,7 @@ import (
 	"github.com/tokenme/adx/router/static"
 )
 
-func NewRouter(uiPath string) *gin.Engine {
+func NewRouter(uiPath string, templatePath string) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
@@ -18,7 +18,7 @@ func NewRouter(uiPath string) *gin.Engine {
 	}
 	r.Use(xssMdlwr.RemoveXss())
 	r.Use(static.Serve("/", static.LocalFile(uiPath, 0, true)))
-	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob(templatePath)
 	authRouter(r)
 	userRouter(r)
 	mediaRouter(r)
@@ -27,5 +27,7 @@ func NewRouter(uiPath string) *gin.Engine {
 	privateAuctionRouter(r)
 	adRouter(r)
 	statsRouter(r)
+	airdropRouter(r)
+	tokenRouter(r)
 	return r
 }

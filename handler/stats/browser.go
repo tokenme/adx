@@ -33,6 +33,11 @@ func BrowserHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
+	ch := Service.Clickhouse
+	if Check(ch == nil, "stats server down", c) {
+		return
+	}
+
 	var (
 		startDate time.Time
 		endDate   time.Time
@@ -79,7 +84,6 @@ func BrowserHandler(c *gin.Context) {
 		wheres = append(wheres, fmt.Sprintf("AuctionId=%d", req.AuctionId))
 	}
 
-	ch := Service.Clickhouse
 	if startDateStr == endDateStr {
 		wheres = append(wheres, fmt.Sprintf("LogDate='%s'", startDateStr))
 	} else {

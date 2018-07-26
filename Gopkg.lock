@@ -8,6 +8,12 @@
   version = "v0.3.0"
 
 [[projects]]
+  name = "github.com/anaskhan96/soup"
+  packages = ["."]
+  revision = "cd07662ec9300d16d2ece1c24b0b29ad89f65ff4"
+  version = "v1.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/aristanetworks/goarista"
   packages = ["monotime"]
@@ -71,6 +77,12 @@
   packages = ["."]
   revision = "deb3ae2ef2610fde3330947281941c562861188b"
   version = "2018.01.18"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/coincircle/go-coinmarketcap"
+  packages = ["types"]
+  revision = "8576053ecf9cc53320ac1025732144db6a9ddd3b"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -250,6 +262,12 @@
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
   revision = "995366fdf961d03629cd17361bddd32745718e2c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/miguelmota/go-coinmarketcap"
+  packages = ["."]
+  revision = "8576053ecf9cc53320ac1025732144db6a9ddd3b"
 
 [[projects]]
   name = "github.com/mkideal/log"
@@ -502,6 +520,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7264373f30cd48a7ae438c499c64c22d4f71b1bc13c8da323883e1026296a56b"
+  inputs-digest = "c696bd2a260981f8d762011362ebd54632d6ad02612a205b77aec9eaadd03119"
   solver-name = "gps-cdcl"
   solver-version = 1

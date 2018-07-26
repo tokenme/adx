@@ -22,25 +22,52 @@ import (
 	"syscall"
 )
 
-var (
-	configFlag = flag.String("config", "config.toml", "configuration file")
-)
-
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	var config common.Config
+	var (
+		config     common.Config
+		configFlag common.Config
+		configPath string
+	)
 
 	os.Setenv("CONFIGOR_ENV_PREFIX", "-")
-	configor.New(&configor.Config{Verbose: true, ErrorOnUnmatchedKeys: true, Environment: "production"}).Load(&config, *configFlag)
 
-	flag.IntVar(&config.Port, "port", 8005, "set port")
-	flag.StringVar(&config.UI, "ui", "./ui/dist", "set web static file path")
-	flag.StringVar(&config.LogPath, "log", "/tmp/tokenmama-adx", "set log file path without filename")
-	flag.BoolVar(&config.Debug, "debug", false, "set debug mode")
-	flag.BoolVar(&config.EnableWeb, "web", false, "enable http web server")
-	flag.BoolVar(&config.EnableAdServer, "ad", false, "enable ad server")
-	flag.BoolVar(&config.EnableGC, "gc", false, "enable gc")
+	flag.StringVar(&configPath, "config", "config.toml", "configuration file")
+	flag.IntVar(&configFlag.Port, "port", 8005, "set port")
+	flag.StringVar(&configFlag.UI, "ui", "./ui/dist", "set web static file path")
+	flag.StringVar(&configFlag.LogPath, "log", "/tmp/tokenmama-adx", "set log file path without filename")
+	flag.BoolVar(&configFlag.Debug, "debug", false, "set debug mode")
+	flag.BoolVar(&configFlag.EnableWeb, "web", false, "enable http web server")
+	flag.BoolVar(&configFlag.EnableAdServer, "ad", false, "enable ad server")
+	flag.BoolVar(&configFlag.EnableGC, "gc", false, "enable gc")
 	flag.Parse()
+
+	configor.New(&configor.Config{Verbose: configFlag.Debug, ErrorOnUnmatchedKeys: true, Environment: "production"}).Load(&config, configPath)
+
+	if configFlag.Port > 0 {
+		config.Port = configFlag.Port
+	}
+	if configFlag.UI != "" {
+		config.UI = configFlag.UI
+	}
+	if configFlag.LogPath != "" {
+		config.LogPath = configFlag.LogPath
+	}
+	if configFlag.EnableWeb {
+		config.EnableWeb = configFlag.EnableWeb
+	}
+
+	if configFlag.EnableGC {
+		config.EnableGC = configFlag.EnableGC
+	}
+
+	if configFlag.EnableAdServer {
+		config.EnableAdServer = configFlag.EnableAdServer
+	}
+
+	if configFlag.Debug {
+		config.Debug = configFlag.Debug
+	}
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -90,8 +117,9 @@ func main() {
 		} else {
 			staticPath = path.Join(wd, config.UI)
 		}
-		log.Info("Static UI path: %s", staticPath)
-		r := router.NewRouter(staticPath)
+		templatePath := path.Join(config.Template, "./*")
+		log.Info("Static UI path: %s, Template path: %s", staticPath, templatePath)
+		r := router.NewRouter(staticPath, templatePath)
 		log.Info("%s started at:0.0.0.0:%d", config.AppName, config.Port)
 		defer log.Info("%s exit from:0.0.0.0:%d", config.AppName, config.Port)
 		endless.ListenAndServe(fmt.Sprintf(":%d", config.Port), r)

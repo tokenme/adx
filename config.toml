@@ -2,9 +2,9 @@ AppName = "tokenmama-adx"
 
 BaseUrl = "https://tokenmama.io"
 
-CDNUrl = "https://adxcdn.tokenmama.io/"
+CDNUrl = "https://tmm-adx.tianxi100.com/"
 
-CreativeCDN = "https://adcdn.tokenmama.io"
+CreativeCDN = "https://tmm-ad.tianxi100.com"
 
 AdUrl = "https://adx.tokenmama.io/t/"
 
@@ -20,9 +20,11 @@ Port = 8005
 
 UI = "./ui/dist"
 
+Template = "/opt/adx-templates"
+
 LogPath = "/tmp/tokenmama-adx"
 
-ClickhouseDSN = "tcp://ip-172-31-24-71.ap-northeast-1.compute.internal:9000?username=tm&password=gthSSKD0345&alt_hosts=ip-172-31-28-105.ap-northeast-1.compute.internal:9000,ip-172-31-31-151.ap-northeast-1.compute.internal:9000"
+ClickhouseDSN = "tcp://120.55.144.72:10100?username=tm&password=gthSSKD0345"
 
 Geth = "https://mainnet.infura.io/NlT37dDxuLT2tlZNw3It"
 
@@ -44,7 +46,14 @@ SentryDSN = "https://6a576b1028974e93a5e2d29071c0e896:fc012faed5a94a3683f435714e
 
 AuctionRate = 110.0
 
-AdJSVer = "848aed3f12b2f74526b0"
+AdJSVer = "93c5ef570a12016a58e8"
+
+[Airdrop]
+CommissionFee = 4
+GasPrice = 4
+GasLimit = 210000
+DealerContractGasPrice = 5
+DealerContractGasLimit = 210000
 
 [MySQL]
 Host = "tokenme.c4evkvyvqy7m.ap-northeast-1.rds.amazonaws.com:3306"

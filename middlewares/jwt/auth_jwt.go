@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+type MapClaims = jwt.MapClaims
+
 // GinJWTMiddleware provides a Json-Web-Token authentication implementation. On failure, a 401 HTTP response
 // is returned. On success, the wrapped middleware is called, and the userID is made available as
 // c.Get("userID").(string).

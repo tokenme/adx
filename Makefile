@@ -10,5 +10,7 @@ secp256k1:
 install:
 	rm -rf /opt/adx-ui/*;
 	cp -r ui/build/dist/* /opt/adx-ui/;
+	rm -rf /opt/adx-templates/*;
+	cp -r templates/* /opt/adx-templates/;
 	cp -f /opt/go/bin/adx /usr/local/bin/;
 	chmod a+x /usr/local/bin/adx;
