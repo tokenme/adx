@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
-	"github.com/mkideal/log"
 	"github.com/nu7hatch/gouuid"
 	"github.com/tokenme/adx/coins/eth"
 	"github.com/tokenme/adx/common"
@@ -34,7 +33,7 @@ func CreateHandler(c *gin.Context) {
 	if CheckErr(c.Bind(&req), c) {
 		return
 	}
-	log.Info("req: %s", Json(req))
+	//log.Info("req: %s", Json(req))
 
 	if Check(req.Email == "" && req.Mobile == "", "missing email and mobile", c) {
 		return
@@ -90,10 +89,17 @@ func CreateHandler(c *gin.Context) {
 		telegram, _ = telegramUtils.ParseTelegramAuth(req.Telegram)
 	}
 	db := Service.Db
-	_, ret, err := db.Query(`INSERT INTO adx.users (country_code, mobile, email, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser) VALUES (%d, '%s', '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d)`, req.CountryCode, db.Escape(mobile), db.Escape(req.Email), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser)
+	var res mysql.Result
+	if req.Email != "" && req.Mobile != "" {
+		_, res, err = db.Query(`INSERT INTO adx.users (country_code, mobile, email, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser) VALUES (%d, '%s', '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d)`, req.CountryCode, db.Escape(mobile), db.Escape(req.Email), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser)
+	} else if req.Email != "" {
+		_, res, err = db.Query(`INSERT INTO adx.users (email, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser) VALUES ('%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d)`, db.Escape(req.Email), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser)
+	} else if req.Mobile != "" {
+		_, res, err = db.Query(`INSERT INTO adx.users (country_code, mobile, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser) VALUES (%d, '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d)`, req.CountryCode, db.Escape(mobile), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser)
+	}
 	if err != nil && err.(*mysql.Error).Code == mysql.ER_DUP_ENTRY {
 		if req.Email != "" {
-			if rows, _, err := db.Query(`SELECT active FROM adx.users WHERE email='%s' LIMIT 1`, db.Escape(req.Email)); err == nil {
+			if rows, _, err := db.Query(`SELECT active FROM adx.users WHERE email='%s' LIMIT 1`, db.Escape(req.Email)); err == nil && len(rows) > 0 {
 				active := rows[0].Uint(0)
 				if active == 0 {
 					c.JSON(http.StatusOK, APIError{Code: UNACTIVATED_USER_ERROR, Msg: "account already exists, but did not activate!"})
@@ -108,7 +114,7 @@ func CreateHandler(c *gin.Context) {
 		raven.CaptureError(err, nil)
 		return
 	}
-	userId := ret.InsertId()
+	userId := res.InsertId()
 	_, _, err = db.Query(`INSERT IGNORE INTO adx.user_wallets (user_id, token_type, salt, wallet, name, is_private, is_main) VALUES (%d, 'ETH', '%s', '%s', 'SYS', 1, 1)`, userId, db.Escape(walletSalt), db.Escape(wallet))
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
