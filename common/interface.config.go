@@ -28,6 +28,7 @@ type Config struct {
 	Mail                MailConfig    `required:"true"`
 	SlackToken          string        `required:"true"`
 	SlackAdminChannelID string        `required:"true"`
+	TwilioToken         string        `required:"true"`
 	TelegramBotToken    string        `required:"true"`
 	TelegramBotName     string        `required:"true"`
 	GeoIP               string        `required:"true"`

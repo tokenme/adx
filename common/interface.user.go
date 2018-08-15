@@ -13,6 +13,8 @@ import (
 
 type User struct {
 	Id             uint64        `json:"id,omitempty"`
+	Mobile         string        `json:"mobile,omitempty"`
+	CountryCode    uint          `json:"country_code,omitempty"`
 	Email          string        `json:"email,omitempty"`
 	ActivationCode string        `json:"-"`
 	ResetPwdCode   string        `json:"-"`
