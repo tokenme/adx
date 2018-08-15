@@ -78,6 +78,8 @@ type GinJWTMiddleware struct {
 
 // Login form structure.
 type Login struct {
+	Mobile       string `form:"mobile" json:"mobile"`
+	CountryCode  uint   `form:"country_code" json:"country_code"`
 	Email        string `form:"email" json:"email"`
 	Password     string `form:"password" json:"password"`
 	Telegram     string `form:"telegram" json:"telegram"`

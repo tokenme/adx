@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/getsentry/raven-go"
@@ -13,6 +15,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"runtime"
+	"path"
 )
 
 var (
@@ -65,7 +69,8 @@ func (this APIError) Error() string {
 func Check(flag bool, err string, c *gin.Context) (ret bool) {
 	ret = flag
 	if ret {
-		log.Error(err)
+		_, file, line, _ := runtime.Caller(1)
+		log.Error("[%s:%d]: %s", path.Base(file), line, err)
 		c.JSON(http.StatusOK, APIError{Code: BADREQUEST_ERROR, Msg: err})
 	}
 	return
@@ -73,7 +78,8 @@ func Check(flag bool, err string, c *gin.Context) (ret bool) {
 func CheckErr(err error, c *gin.Context) (ret bool) {
 	ret = err != nil
 	if ret {
-		log.Error(err.Error())
+		_, file, line, _ := runtime.Caller(1)
+		log.Error("[%s:%d]: %s", path.Base(file), line, err)
 		c.JSON(http.StatusOK, APIError{Code: BADREQUEST_ERROR, Msg: err.Error()})
 	}
 	return
@@ -142,4 +148,12 @@ func IP2Long(IpStr string) (int64, error) {
 	}
 
 	return sum, nil
+}
+
+func Json(obj interface{}) string {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.Encode(obj)
+
+	return buf.String()
 }
