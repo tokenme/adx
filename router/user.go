@@ -14,7 +14,7 @@ func userRouter(r *gin.Engine) {
 	}
 	r.GET("/user/activate", user.ActivateHandler)
 	r.GET("/user/reset-pwd-verify", user.ResetPwdVerifyEmailHandler)
-	r.POST("/adx/user/create", user.CreateHandler)
+	r.POST("/user/create", user.CreateHandler)
 	r.POST("/user/reset-password", user.ResetPasswordHandler)
 	r.POST("/user/reset-password-mobile", user.ResetPasswordMobileHandler)
 	r.GET("/user/avatar/:key", user.AvatarGetHandler)
