@@ -9,6 +9,7 @@ import (
 	"gopkg.in/gomail.v2"
 	"html/template"
 	"net/url"
+	"path"
 )
 
 type EmailMessage struct {
@@ -65,7 +66,8 @@ func (this *EmailQueue) Handler(msg EmailMessage) error {
 	switch msg.Type {
 	case RegisterMsg:
 		subject = "Welcome to Tokenama! Confirm Your Email"
-		t, err := template.ParseFiles("templates/register-email.html")
+		templatePath := path.Join(this.Config.Template, "./register-email.html")
+		t, err := template.ParseFiles(templatePath)
 		if err != nil {
 			log.Error(err.Error())
 			return err
@@ -88,7 +90,8 @@ func (this *EmailQueue) Handler(msg EmailMessage) error {
 		body = b.String()
 	case ResetPwdMsg:
 		subject = "Reset Password"
-		t, err := template.ParseFiles("templates/reset-pwd-email.html")
+		templatePath := path.Join(this.Config.Template, "./reset-pwd-email.html")
+		t, err := template.ParseFiles(templatePath)
 		if err != nil {
 			log.Error(err.Error())
 			return err

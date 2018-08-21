@@ -6,6 +6,7 @@ import (
 	"fmt"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
+	//"github.com/mkideal/log"
 	"github.com/tokenme/adx/coins/eth"
 	"github.com/tokenme/adx/utils"
 	"math/big"
@@ -79,7 +80,8 @@ func (this User) Balance(ctx context.Context, service *Service, config Config) (
 	row := rows[0]
 	salt := row.Str(1)
 	wallet := row.Str(2)
-	deposit := new(big.Int).SetUint64(uint64(row.ForceFloat(3) * params.Ether))
+	deposit := new(big.Int).SetUint64(uint64(row.ForceFloat(3) * params.Shannon))
+	deposit = new(big.Int).Mul(deposit, big.NewInt(params.Shannon))
 	privateKey, err := utils.AddressDecrypt(wallet, salt, config.TokenSalt)
 	if err != nil {
 		return nil, err
@@ -93,7 +95,6 @@ func (this User) Balance(ctx context.Context, service *Service, config Config) (
 		return nil, err
 	}
 	balance = new(big.Int).Add(balance, deposit)
-
 	if this.IsAdvertiser == 1 {
 		query := `SELECT
 			user_id ,
