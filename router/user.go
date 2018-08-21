@@ -13,9 +13,10 @@ func userRouter(r *gin.Engine) {
 		userGroup.GET("/balance", user.BalanceHandler)
 	}
 	r.GET("/user/activate", user.ActivateHandler)
-	r.GET("/user/reset-pwd-verify", user.ResetPwdVerifyHandler)
+	r.GET("/user/reset-pwd-verify", user.ResetPwdVerifyEmailHandler)
 	r.POST("/user/create", user.CreateHandler)
 	r.POST("/user/reset-password", user.ResetPasswordHandler)
+	r.POST("/user/reset-password-mobile", user.ResetPasswordMobileHandler)
 	r.GET("/user/avatar/:key", user.AvatarGetHandler)
 	r.POST("/user/resend-activation-email", user.ResendActivationEmailHandler)
 	r.POST("/user/send-reset-password-email", user.SendResetPasswordEmailHandler)
