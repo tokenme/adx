@@ -1,7 +1,6 @@
 package router
 
 import (
-	//"github.com/danielkov/gin-helmet"
 	"github.com/dvwright/xss-mw"
 	"github.com/gin-gonic/gin"
 	"github.com/tokenme/adx/router/static"
@@ -29,5 +28,6 @@ func NewRouter(uiPath string, templatePath string) *gin.Engine {
 	statsRouter(r)
 	airdropRouter(r)
 	tokenRouter(r)
+	geoIPRouter(r)
 	return r
 }
