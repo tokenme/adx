@@ -32,6 +32,8 @@ SlackToken = "xoxp-340014960567-338241194720-339563622341-94fcb61ce9353b2b0f5a86
 
 SlackAdminChannelID = "G9Y7METUG"
 
+TwilioToken = "khWDR6abzUyqzM1WHy9Tfq7P2jRoEhLA"
+
 TelegramBotToken = "547738949:AAFJLOcFctmNEK5wDRDpWP8lE107T7p8XQU"
 
 TelegramBotName = "TokenmeBot"

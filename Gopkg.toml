@@ -26,6 +26,7 @@
 
 
 required = ["github.com/davecgh/go-spew/spew"]
+# ignored = ["golang.org/x/net/idna", "golang.org/x/crypto/pbkdf2", "golang.org/x/crypto/scrypt", "golang.org/x/net/websocket", "golang.org/x/tools/imports", "golang.org/x/net/html", "golang.org/x/sys/unix", "golang.org/x/sys/windows", "golang.org/x/time/rate"]
 
 [metadata]
 codename = "tokenmama-adx"
