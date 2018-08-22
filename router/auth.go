@@ -86,4 +86,6 @@ func authRouter(r *gin.Engine) {
 		authGroup.GET("/refresh_token", AuthMiddleware.RefreshHandler)
 		authGroup.POST("/telegram", auth.TelegramHandler)
 	}
+	r.POST("/auth/send", auth.SendHandler)
+	r.POST("/auth/verify", auth.VerifyHandler)
 }
