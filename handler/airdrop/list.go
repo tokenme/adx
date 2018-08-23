@@ -1,160 +1,128 @@
 package airdrop
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
+	"github.com/tokenme/adx/coins/eth"
 	"github.com/tokenme/adx/common"
 	. "github.com/tokenme/adx/handler"
 	"github.com/tokenme/adx/utils"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
-type ListRequest struct {
-	Page         uint     `form:"page" json:"page"`
-	OnlineStatus int      `form:"onlineStatus" json:"onlineStatus"`
-	DateRange    []string `form:"dateRange" json:"dateRange"`
-}
-
-type ListResponse struct {
-	Total    uint             `json:"total"`
-	Page     uint             `json:"page"`
-	PageSize uint             `json:"page_size"`
-	Airdrops []common.Airdrop `json:"airdrops"`
-}
-
-const MAX_PAGE_SIZE uint = 20
+const DEFAULT_PAGE_SIZE uint64 = 10
 
 func ListHandler(c *gin.Context) {
-	var req ListRequest
-	opt := c.Query("options")
-	json.Unmarshal([]byte(opt), &req)
-
 	userContext, exists := c.Get("USER")
 	if Check(!exists, "need login", c) {
 		return
 	}
 	user := userContext.(common.User)
-
-	if Check(user.IsAdvertiser != 1, "unauthorized", c) {
-		return
-	}
-
-	db := Service.Db
 	var (
 		where  string
 		wheres []string
-		page   = req.Page
 	)
-	wheres = append(wheres, fmt.Sprintf("a.user_id=%d", user.Id))
-	if req.OnlineStatus != 0 {
-		wheres = append(wheres, fmt.Sprintf("a.online_status=%d", req.OnlineStatus))
-	}
-
-	var (
-		startDate time.Time
-		endDate   time.Time
-		err       error
-	)
-	if len(req.DateRange) == 2 {
-		startDate, err = time.Parse("2006-01-02", req.DateRange[0])
-		if err != nil {
-			startDate = utils.TimeToDate(time.Now())
-			endDate = startDate.AddDate(0, 2, 0)
-		} else {
-			endDate, err = time.Parse("2006-01-02", req.DateRange[1])
+	if user.IsPublisher != 0 || user.IsAdmin != 0 {
+		var subWhere []string
+		if user.IsAdmin == 0 {
+			subWhere = append(subWhere, fmt.Sprintf("a.user_id=%d", user.Id))
 		}
-		if err != nil || endDate.Before(startDate) || endDate.After(startDate.AddDate(0, 2, 0)) {
-			startDate = utils.TimeToDate(time.Now())
-			endDate = startDate.AddDate(0, 2, 0)
+		status, _ := Uint64Value(c.Query("status"), 10)
+		if status <= 2 {
+			subWhere = append(subWhere, fmt.Sprintf("a.status=%d", status))
+		}
+		balanceStatus, _ := Uint64Value(c.Query("balance_status"), 10)
+		if balanceStatus <= 4 {
+			subWhere = append(subWhere, fmt.Sprintf("a.balance_status=%d", balanceStatus))
+		}
+		if len(subWhere) > 0 {
+			wheres = append(wheres, strings.Join(subWhere, " AND "))
 		}
 	} else {
-		startDate = utils.TimeToDate(time.Now())
-		endDate = startDate.AddDate(0, 2, 0)
+		now := time.Now().Format("2006-01-02")
+		wheres = append(wheres, fmt.Sprintf("a.status=1 AND a.balance_status=0 AND a.start_date<='%s' AND end_date >='%s'", now, now))
 	}
-	wheres = append(wheres, fmt.Sprintf("a.start_date>='%s' AND a.end_date<='%s'", startDate.Format("2006-01-02"), endDate.Format("2006-01-02")))
 	if len(wheres) > 0 {
-		where = strings.Join(wheres, " AND ")
+		where = fmt.Sprintf("WHERE %s", strings.Join(wheres, " OR "))
 	}
+	page, _ := Uint64Value(c.Query("page"), 1)
 	if page == 0 {
 		page = 1
 	}
-	limit := (page - 1) * MAX_PAGE_SIZE
+	pageSize, _ := Uint64Value(c.Query("page_size"), DEFAULT_PAGE_SIZE)
+	if pageSize == 0 {
+		pageSize = DEFAULT_PAGE_SIZE
+	}
+	offset := (page - 1) * pageSize
 
-	query := `SELECT 
-				a.id, 
-				a.title, 
-				t.address, 
-				t.name, 
-				t.symbol, 
-				t.decimals,
-				a.budget, 
-				a.commission_fee, 
-				a.give_out, 
-				a.bonus, 
-				a.online_status,
-				a.start_date, 
-				a.end_date, 
-				a.telegram_group, 
-				a.inserted, 
-				a.updated 
-			FROM adx.airdrops AS a 
-			INNER JOIN adx.tokens AS t ON (t.address=a.token_address) 
-			WHERE %s ORDER BY a.id DESC LIMIT %d, %d`
-
-	countQuery := `SELECT 
-	COUNT(1)
-FROM
-	adx.airdrops AS a
-INNER JOIN adx.tokens AS t ON (t.address=a.token_address)
-WHERE %s`
-	rows, _, err := db.Query(query, where, limit, MAX_PAGE_SIZE)
+	db := Service.Db
+	rows, _, err := db.Query(`SELECT a.id, a.user_id, a.title, a.wallet, a.salt, t.address, t.name, t.symbol, t.decimals, t.protocol, a.gas_price, a.gas_limit, a.commission_fee, a.give_out, a.bonus, a.status, a.balance_status, a.start_date, a.end_date, a.drop_date, a.telegram_group, a.require_email, a.max_submissions, a.no_drop, a.reply_msg, a.inserted, a.updated FROM adx.airdrops AS a INNER JOIN adx.tokens AS t ON (t.address=a.token_address) %s ORDER BY a.id DESC LIMIT %d, %d`, where, offset, pageSize)
 	if CheckErr(err, c) {
-		raven.CaptureError(err, nil)
 		return
 	}
-
-	var airdrops []common.Airdrop
+	var airdrops []*common.Airdrop
+	var wg sync.WaitGroup
 	for _, row := range rows {
-		airdrop := common.Airdrop{
-			Id:    row.Uint64(0),
-			Title: row.Str(1),
+		wallet := row.Str(3)
+		salt := row.Str(4)
+		privateKey, _ := utils.AddressDecrypt(wallet, salt, Config.TokenSalt)
+		publicKey, _ := eth.AddressFromHexPrivateKey(privateKey)
+		airdrop := &common.Airdrop{
+			Id:             row.Uint64(0),
+			User:           common.User{Id: row.Uint64(1)},
+			Title:          row.Str(2),
+			Wallet:         publicKey,
+			WalletPrivKey:  privateKey,
 			Token: common.Token{
-				Address:  row.Str(2),
-				Name:     row.Str(3),
-				Symbol:   row.Str(4),
-				Decimals: row.Uint(5),
+				Address:  row.Str(5),
+				Name:     row.Str(6),
+				Symbol:   row.Str(7),
+				Decimals: row.Uint(8),
+				Protocol: row.Str(9),
 			},
-			Budget:        row.Uint64(6),
-			CommissionFee: row.Uint64(7),
-			GiveOut:       row.Uint64(8),
-			Bonus:         row.Uint(9),
-			OnlineStatus:  row.Int(10),
-			StartDate:     row.ForceLocaltime(11),
-			EndDate:       row.ForceLocaltime(12),
-			TelegramGroup: row.Str(13),
-			InsertedAt:    row.ForceLocaltime(14),
-			UpdatedAt:     row.ForceLocaltime(15),
+			GasPrice:       row.Uint64(10),
+			GasLimit:       row.Uint64(11),
+			CommissionFee:  row.Uint64(12),
+			GiveOut:        row.Uint64(13),
+			Bonus:          row.Uint(14),
+			Status:         row.Uint(15),
+			BalanceStatus:  row.Uint(16),
+			StartDate:      row.ForceLocaltime(17),
+			EndDate:        row.ForceLocaltime(18),
+			DropDate:       row.ForceLocaltime(19),
+			TelegramBot:    Config.TelegramBotName,
+			TelegramGroup:  row.Str(20),
+			RequireEmail:   row.Uint(21),
+			MaxSubmissions: row.Uint(22),
+			NoDrop: 	    row.Uint(23),
+			ReplyMsg:       row.Str(24),
+			Inserted:       row.ForceLocaltime(25),
+			Updated:        row.ForceLocaltime(26),
+		}
+		if airdrop.Token.Protocol == "ERC20" {
+			wg.Add(1)
+			go func(airdrop *common.Airdrop, c *gin.Context) {
+				defer wg.Done()
+				airdrop.CheckBalance(Service.Geth, c)
+			}(airdrop, c)
 		}
 		airdrops = append(airdrops, airdrop)
 	}
-
-	rows, _, err = db.Query(countQuery, where)
-	if CheckErr(err, c) {
-		raven.CaptureError(err, nil)
-		return
+	wg.Wait()
+	var val []string
+	for _, a := range airdrops {
+		if a.Token.Protocol == "ERC20" && a.NoDrop == 0 {
+			val = append(val, fmt.Sprintf("(%d, %d)", a.Id, a.BalanceStatus))
+		}
 	}
-	total := rows[0].Uint(0)
-	resp := ListResponse{
-		Total:    total,
-		Airdrops: airdrops,
-		Page:     page,
-		PageSize: MAX_PAGE_SIZE,
+	if len(val) > 0 {
+		_, _, err = db.Query(`INSERT INTO adx.airdrops (id, balance_status) VALUES %s ON DUPLICATE KEY UPDATE balance_status=VALUES(balance_status)`, strings.Join(val, ","))
+		if CheckErr(err, c) {
+			return
+		}
 	}
-	c.JSON(http.StatusOK, resp)
-	return
-
+	c.JSON(http.StatusOK, airdrops)
 }
