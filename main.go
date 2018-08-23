@@ -13,8 +13,10 @@ import (
 	"github.com/tokenme/adx/handler"
 	"github.com/tokenme/adx/router"
 	adServer "github.com/tokenme/adx/tools/ad/server"
+	"github.com/tokenme/adx/tools/airdrop"
 	"github.com/tokenme/adx/tools/gc"
 	"github.com/tokenme/adx/tools/sqs"
+	"github.com/tokenme/adx/tools/tracker"
 	"os"
 	"os/signal"
 	"path"
@@ -39,6 +41,7 @@ func main() {
 	flag.BoolVar(&configFlag.Debug, "debug", false, "set debug mode")
 	flag.BoolVar(&configFlag.EnableWeb, "web", false, "enable http web server")
 	flag.BoolVar(&configFlag.EnableAdServer, "ad", false, "enable ad server")
+	flag.BoolVar(&configFlag.EnableDealer, "dealer", false, "enable dealer")
 	flag.BoolVar(&configFlag.EnableGC, "gc", false, "enable gc")
 	flag.Parse()
 
@@ -65,6 +68,14 @@ func main() {
 		config.EnableAdServer = configFlag.EnableAdServer
 	}
 
+	if configFlag.EnableDealer {
+		config.EnableDealer = configFlag.EnableDealer
+	}
+
+	if configFlag.EnableDepositChecker {
+		config.EnableDepositChecker = configFlag.EnableDepositChecker
+	}
+
 	if configFlag.Debug {
 		config.Debug = configFlag.Debug
 	}
@@ -87,6 +98,22 @@ func main() {
 	defer service.Close()
 	service.Db.Reconnect()
 
+	trackerService := tracker.New()
+	promotionTracker := tracker.NewPromotionLogService(service)
+	trackerService.SetPromotion(promotionTracker)
+	go trackerService.Start()
+
+	dealerContractDeployer := airdrop.NewDealerContractDeployer(service, config)
+	allowanceChecker := airdrop.NewAllowanceChecker(service, config)
+	airdropper := airdrop.NewAirdropper(service, config)
+	airdropChecker := airdrop.NewAirdropChecker(service, config, trackerService)
+	if config.EnableDealer {
+		go dealerContractDeployer.Start()
+		go allowanceChecker.Start()
+		go airdropper.Start()
+		go airdropChecker.Start()
+	}
+
 	AdServer := adServer.New(service, config)
 	queueManager := sqs.NewManager(config.SQS)
 	emailQueue := sqs.NewEmailQueue(queueManager, service, config)
@@ -104,7 +131,7 @@ func main() {
 		go AdServer.Start()
 	}
 	if config.EnableWeb {
-		handler.InitHandler(service, config, AdServer, emailQueue, adClickQueue, adImpQueue)
+		handler.InitHandler(service, config, AdServer, emailQueue, adClickQueue, adImpQueue, trackerService)
 		if config.Debug {
 			gin.SetMode(gin.DebugMode)
 		} else {
@@ -138,6 +165,12 @@ func main() {
 		adClickQueue.Stop()
 		adImpQueue.Stop()
 	}
+
+	dealerContractDeployer.Stop()
+	allowanceChecker.Stop()
+	airdropper.Stop()
+	airdropChecker.Stop()
+
 	AdServer.Stop()
 	emailQueue.Stop()
 }
