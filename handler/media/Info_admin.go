@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"github.com/tokenme/adx/common"
 	"time"
+	"strconv"
 )
 
 func IndexMediaHander(c *gin.Context){
@@ -18,7 +19,7 @@ func IndexMediaHander(c *gin.Context){
 		return
 	}
 	db := Service.Db
-	id := c.Param("id")
+	id := c.Query("id")
 	row,resut,err:=db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
 	a.title,a.domain,a.intro,a.verified,a.online_status,a.verified_at,
 	a.inserted_at,a.updated_at FROM adx.medias AS a 
@@ -47,6 +48,8 @@ func IndexMediaHander(c *gin.Context){
 	c.JSON(http.StatusOK,Media)
 }
 
+const Limit  =15
+const one  = 1
 
 func MediaInfoHandler(c *gin.Context){
 	userContext, exists := c.Get("USER")
@@ -57,11 +60,17 @@ func MediaInfoHandler(c *gin.Context){
 	if Check(user.IsAdmin!=1,"is not admin",c){
 		return
 	}
+	page,err:=strconv.Atoi(c.Query("page"))
+	CheckErr(err,c)
+	if page <=0{
+		c.JSON(http.StatusNotFound,"Error Page Number")
+	}
+	index:=(page-one)*Limit
 	db := Service.Db
 	row,resut,err:=db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
 	a.title,a.domain,a.intro,a.verified,a.online_status,a.verified_at,
 	a.inserted_at,a.updated_at FROM adx.medias AS a 
-	INNER JOIN adx.users AS t ON (a.user_id=t.id)`)
+	INNER JOIN adx.users AS t ON (a.user_id=t.id) LIMIT %d OFFSET %d`,Limit,index)
 	CheckErr(err,c)
 	info:=[]common.Media{}
 	for _,value:=range row{
@@ -81,5 +90,6 @@ func MediaInfoHandler(c *gin.Context){
 		}
 		info = append(info, Media)
 	}
+
 	c.JSON(http.StatusOK,info)
 }
