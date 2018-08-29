@@ -15,10 +15,14 @@ type Media struct {
 	Desc         string    `json:"desc,omitempty"`
 	Verified     uint      `json:"verified"`
 	OnlineStatus uint      `json:"online_status"`
+	Intro        string    `json:"intro"`
 	Identity     string    `json:"identity,omitempty"`
 	VerifyDNS    string    `json:"verify_dns,omitempty"`
 	VerifyURL    string    `json:"verify_url,omitempty"`
 	DNSValue     string    `json:"dns_value,omitempty"`
+	Email    	 string    `json:"email"`
+	Mobile       string    `json:"mobile"`
+	Verified_at  time.Time `json:"verified_at"`
 	InsertedAt   time.Time `json:"inserted_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
