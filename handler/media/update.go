@@ -9,6 +9,7 @@ import (
 	"github.com/tokenme/adx/utils"
 	"net/http"
 	"strings"
+	"errors"
 )
 
 type UpdateRequest struct {
@@ -44,8 +45,13 @@ func UpdateHandler(c *gin.Context) {
 	if desc != "" {
 		set = append(set, fmt.Sprintf("intro='%s'", db.Escape(desc)))
 	}
+	err:=errors.New("")
+	if user.IsAdmin ==1{
+		_, _, err = db.Query(`UPDATE adx.medias SET %s WHERE id=%d `, strings.Join(set, ","), req.Id)
 
-	_, _, err := db.Query(`UPDATE adx.medias SET %s WHERE id=%d AND user_id=%d`, strings.Join(set, ","), req.Id, user.Id)
+	}else {
+		_, _, err = db.Query(`UPDATE adx.medias SET %s WHERE id=%d AND user_id=%d`, strings.Join(set, ","), req.Id, user.Id)
+	}
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
 		return
