@@ -48,6 +48,8 @@ func IndexMediaHander(c *gin.Context){
 	c.JSON(http.StatusOK,Media)
 }
 
+const Displaylimit  =15
+const one  = 1
 
 func MediaInfoHandler(c *gin.Context){
 	userContext, exists := c.Get("USER")
@@ -60,13 +62,12 @@ func MediaInfoHandler(c *gin.Context){
 	}
 	page,err:=strconv.Atoi(c.Query("page"))
 	CheckErr(err,c)
-	index,last:=(page-1)*15,page*15
+	index,last:=(page-one)*Displaylimit,page*Displaylimit
 	db := Service.Db
 	row,resut,err:=db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
 	a.title,a.domain,a.intro,a.verified,a.online_status,a.verified_at,
 	a.inserted_at,a.updated_at FROM adx.medias AS a 
-	INNER JOIN adx.users AS t ON (a.user_id=t.id) 
-	WHERE %d<a.id And a.id<%d`,index,last+1)
+	INNER JOIN adx.users AS t ON (a.user_id=t.id) LIMIT %d OFFSET %d`,last,index)
 	CheckErr(err,c)
 	info:=[]common.Media{}
 	for _,value:=range row{
