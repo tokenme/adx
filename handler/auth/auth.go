@@ -50,19 +50,20 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		return loginInfo.Email, false
 	}
 	query := `SELECT 
-                u.id, 
-			     u.country_code,
-			     u.mobile,
-                u.email, 
-                u.salt, 
-                u.passwd,
-                u.telegram_id,
-                u.telegram_username,
-                u.telegram_firstname,
-                u.telegram_lastname,
-                u.telegram_avatar,
-                uw.salt AS uw_salt,
-                uw.wallet
+			u.id, 
+			u.country_code,
+			u.mobile,
+			u.email, 
+			u.salt, 
+			u.passwd,
+			u.is_admin,
+			u.telegram_id,
+			u.telegram_username,
+			u.telegram_firstname,
+			u.telegram_lastname,
+			u.telegram_avatar,
+			uw.salt AS uw_salt,
+			uw.wallet
             FROM adx.users AS u
             INNER JOIN adx.user_wallets AS uw ON (uw.user_id = u.id AND uw.is_main = 1 AND uw.token_type='ETH')
             WHERE %s
@@ -80,6 +81,7 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		Email:       row.Str(res.Map("email")),
 		Salt:        row.Str(res.Map("salt")),
 		Password:    row.Str(res.Map("passwd")),
+		IsAdmin: 	 row.Uint(res.Map("is_admin")),
 	}
 	telegramId := row.Int64(res.Map("telegram_id"))
 	if telegramId > 0 {
