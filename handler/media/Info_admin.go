@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"github.com/tokenme/adx/common"
 	"time"
+	"strconv"
 )
 
 func IndexMediaHander(c *gin.Context){
@@ -18,7 +19,7 @@ func IndexMediaHander(c *gin.Context){
 		return
 	}
 	db := Service.Db
-	id := c.Param("id")
+	id := c.Query("id")
 	row,resut,err:=db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
 	a.title,a.domain,a.intro,a.verified,a.online_status,a.verified_at,
 	a.inserted_at,a.updated_at FROM adx.medias AS a 
@@ -57,11 +58,15 @@ func MediaInfoHandler(c *gin.Context){
 	if Check(user.IsAdmin!=1,"is not admin",c){
 		return
 	}
+	page,err:=strconv.Atoi(c.Query("page"))
+	CheckErr(err,c)
+	index,last:=(page-1)*15,page*15
 	db := Service.Db
 	row,resut,err:=db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
 	a.title,a.domain,a.intro,a.verified,a.online_status,a.verified_at,
 	a.inserted_at,a.updated_at FROM adx.medias AS a 
-	INNER JOIN adx.users AS t ON (a.user_id=t.id)`)
+	INNER JOIN adx.users AS t ON (a.user_id=t.id) 
+	WHERE %d<a.id And a.id<%d`,index,last+1)
 	CheckErr(err,c)
 	info:=[]common.Media{}
 	for _,value:=range row{
@@ -81,5 +86,6 @@ func MediaInfoHandler(c *gin.Context){
 		}
 		info = append(info, Media)
 	}
+
 	c.JSON(http.StatusOK,info)
 }

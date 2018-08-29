@@ -10,7 +10,7 @@ func mediaRouter(r *gin.Engine) {
 	mediaGroup.Use(AuthMiddleware.MiddlewareFunc())
 	{
 		mediaGroup.GET("/admin",media.MediaInfoHandler)
-		mediaGroup.GET("/admin/:id",media.IndexMediaHander)
+		mediaGroup.GET("/admin/media",media.IndexMediaHander)
 		mediaGroup.POST("/add", media.AddHandler)
 		mediaGroup.GET("/verify", media.VerifyHandler)
 		mediaGroup.GET("/info", media.InfoHandler)
