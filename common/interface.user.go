@@ -25,7 +25,7 @@ type User struct {
 	Salt           string        `json:"-"`
 	Password       string        `json:"-"`
 	Wallet         string        `json:"wallet,omitempty"`
-	IsAdmin        uint          `json:"is_admin,omitempty"`
+	IsAdmin        uint          `json:"is_admin"`
 	IsPublisher    uint          `json:"is_publisher,omitempty"`
 	IsAdvertiser   uint          `json:"is_advertiser,omitempty"`
 }
