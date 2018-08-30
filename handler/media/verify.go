@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tokenme/adx/common"
 	. "github.com/tokenme/adx/handler"
+	"github.com/ziutek/mymysql/mysql"
 	"net"
 	"net/http"
 	"strings"
-	"github.com/ziutek/mymysql/mysql"
-	"errors"
 )
 
 type VerifyRequest struct {
@@ -27,17 +26,17 @@ func VerifyHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsPublisher != 1 && user.IsAdmin !=1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdmin != 1, "unauthorized", c) {
 		return
 	}
 	db := Service.Db
-	rows:=[]mysql.Row{}
-	err:= errors.New("")
-	Query:=`SELECT domain, salt FROM adx.medias WHERE id=%d AND user_id=%d`
+	rows := []mysql.Row{}
+	var err error
+	Query := `SELECT domain, salt FROM adx.medias WHERE id=%d AND user_id=%d`
 	if user.IsAdmin == 1 {
 		Query = `SELECT domain,salt FROM adx.medias WHERE id=%d`
-		rows,_,err=db.Query(Query,req.Id)
-	}else{
+		rows, _, err = db.Query(Query, req.Id)
+	} else {
 		rows, _, err = db.Query(Query, req.Id, user.Id)
 	}
 	if CheckErr(err, c) {

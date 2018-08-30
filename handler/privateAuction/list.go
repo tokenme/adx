@@ -83,10 +83,7 @@ WHERE pa.online_status=1%s`
 	if user.IsAdvertiser == 1 {
 		wheres = append(wheres, fmt.Sprintf("pa.user_id=%d", user.Id))
 		orderBy = "pa.id DESC"
-	} else if user.IsPublisher == 1 {
-		wheres = append(wheres, fmt.Sprintf("a.user_id=%d", user.Id))
-		orderBy = "pa.start_on ASC, pa.end_on DESC, pa.price DESC"
-	}else if user.IsAdmin == 1{
+	} else if user.IsPublisher == 1 || user.IsAdmin == 1 {
 		wheres = append(wheres, fmt.Sprintf("a.user_id=%d", user.Id))
 		orderBy = "pa.start_on ASC, pa.end_on DESC, pa.price DESC"
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/tokenme/adx/utils"
 	"net/http"
 	"strings"
-	"errors"
 )
 
 type UpdateRequest struct {
@@ -30,7 +29,7 @@ func UpdateHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1&&user.IsAdmin != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdmin != 1, "unauthorized", c) {
 		return
 	}
 
@@ -45,11 +44,11 @@ func UpdateHandler(c *gin.Context) {
 	if desc != "" {
 		set = append(set, fmt.Sprintf("intro='%s'", db.Escape(desc)))
 	}
-	err:=errors.New("")
-	if user.IsAdmin ==1{
+	var err error
+	if user.IsAdmin == 1 {
 		_, _, err = db.Query(`UPDATE adx.medias SET %s WHERE id=%d `, strings.Join(set, ","), req.Id)
 
-	}else {
+	} else {
 		_, _, err = db.Query(`UPDATE adx.medias SET %s WHERE id=%d AND user_id=%d`, strings.Join(set, ","), req.Id, user.Id)
 	}
 	if CheckErr(err, c) {
