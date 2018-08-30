@@ -1,7 +1,6 @@
 package adzone
 
 import (
-	"errors"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 	"github.com/tokenme/adx/common"
@@ -31,7 +30,7 @@ func ListHandler(c *gin.Context) {
 
 	db := Service.Db
 	rows := []mysql.Row{}
-	err := errors.New("")
+	var err error
 	if user.IsAdmin == 1 {
 		rows, _, err = db.Query(`SELECT a.id, a.url, a.size_id, s.width, s.height, a.min_cpm, a.min_cpt, a.settlement, a.rolling, a.intro, a.online_status, a.placeholder_img, a.placeholder_url, m.id, m.title, m.domain, m.online_status, a.inserted_at, a.updated_at FROM adx.adzones AS a INNER JOIN adx.medias AS m ON (m.id=a.media_id) INNER JOIN adx.sizes AS s ON (s.id=a.size_id) WHERE a.media_id=%d ORDER BY a.id DESC`, req.MediaId)
 	} else {
