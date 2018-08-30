@@ -9,6 +9,7 @@ import (
 	"github.com/tokenme/adx/utils"
 	"net/http"
 	"strings"
+	"errors"
 )
 
 type UpdateRequest struct {
@@ -33,7 +34,7 @@ func UpdateHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1&&user.IsAdmin != 1, "unauthorized", c) {
 		return
 	}
 
@@ -58,7 +59,13 @@ func UpdateHandler(c *gin.Context) {
 	if req.PlaceholderUrl != "" && req.PlaceholderImg != "" {
 		set = append(set, fmt.Sprintf("placeholder_url='%s', placeholder_img='%s'", db.Escape(req.PlaceholderUrl), db.Escape(req.PlaceholderImg)))
 	}
-	_, _, err := db.Query(`UPDATE adx.adzones SET %s WHERE id=%d AND user_id=%d`, strings.Join(set, ","), req.Id, user.Id)
+	err:=errors.New("")
+	if user.IsAdmin == 1{
+		_, _, err = db.Query(`UPDATE adx.adzones SET %s WHERE id=%d `, strings.Join(set, ","), req.Id)
+	}else{
+		_, _, err = db.Query(`UPDATE adx.adzones SET %s WHERE id=%d AND user_id=%d`, strings.Join(set, ","), req.Id, user.Id)
+
+	}
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
 		return

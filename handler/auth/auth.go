@@ -13,10 +13,25 @@ import (
 	"github.com/tokenme/adx/middlewares/jwt"
 	telegramUtils "github.com/tokenme/adx/tools/telegram"
 	"github.com/tokenme/adx/utils"
+	log1 "log"
 )
 
 var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool) {
 	db := Service.Db
+	if loginInfo.Email== "" && loginInfo.Mobile == "" {
+		return "",false
+	}
+		query:=""
+	if loginInfo.Mobile != "" {
+		query = fmt.Sprintf(`SELECT is_admin,is_publisher,is_advertiser FROM adx.users WHERE mobile='%s'`, db.Escape(loginInfo.Mobile))
+		}else {
+		query=fmt.Sprintf(`SELECT is_admin,is_publisher,is_advertiser FROM adx.users WHERE email='%s'`,db.Escape(loginInfo.Email))
+	}
+	rowindex,result,err:=db.Query(query)
+	log1.Println(query,"			",rowindex)
+	loginInfo.IsPublisher = rowindex[0].Uint(result.Map(`is_publisher`))
+	loginInfo.IsAdmin	  =rowindex[0].Uint(result.Map(`is_admin`))
+	loginInfo.IsAdvertiser=rowindex[0].Uint(result.Map(`is_advertiser`))
 	var where string
 	if loginInfo.Telegram != "" {
 		if !telegramUtils.TelegramAuthCheck(loginInfo.Telegram, Config.TelegramBotToken) {
@@ -49,7 +64,7 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 	if where == "" {
 		return loginInfo.Email, false
 	}
-	query := `SELECT 
+	query = `SELECT 
 			u.id, 
 			u.country_code,
 			u.mobile,

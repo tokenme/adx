@@ -15,10 +15,9 @@ func ListHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser !=1 &&user.IsAdmin !=1, "unauthorized", c) {
 		return
 	}
-
 	db := Service.Db
 	rows, _, err := db.Query(`SELECT id, title, domain, intro, salt, verified, online_status, inserted_at, updated_at FROM adx.medias WHERE user_id=%d ORDER BY id DESC`, user.Id)
 	if CheckErr(err, c) {

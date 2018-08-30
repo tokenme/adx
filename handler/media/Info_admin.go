@@ -19,7 +19,7 @@ func IndexMediaHander(c *gin.Context){
 		return
 	}
 	db := Service.Db
-	id := c.Query("id")
+	id := c.DefaultQuery("id","1")
 	row,resut,err:=db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
 	a.title,a.domain,a.intro,a.verified,a.online_status,a.verified_at,
 	a.inserted_at,a.updated_at FROM adx.medias AS a 
@@ -57,13 +57,13 @@ func MediaInfoHandler(c *gin.Context){
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsAdmin!=1,"is not admin",c){
+	if Check(user.IsAdmin!=1,"Is Not Admin",c){
 		return
 	}
-	page,err:=strconv.Atoi(c.Query("page"))
+	page,err:=strconv.Atoi(c.DefaultQuery("page","1"))
 	CheckErr(err,c)
-	if page <=0{
-		c.JSON(http.StatusNotFound,"Error Page Number")
+	if page<=0 {
+		page = 1
 	}
 	index:=(page-one)*Limit
 	db := Service.Db

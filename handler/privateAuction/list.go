@@ -86,6 +86,9 @@ WHERE pa.online_status=1%s`
 	} else if user.IsPublisher == 1 {
 		wheres = append(wheres, fmt.Sprintf("a.user_id=%d", user.Id))
 		orderBy = "pa.start_on ASC, pa.end_on DESC, pa.price DESC"
+	}else if user.IsAdmin == 1{
+		wheres = append(wheres, fmt.Sprintf("a.user_id=%d", user.Id))
+		orderBy = "pa.start_on ASC, pa.end_on DESC, pa.price DESC"
 	}
 	if req.AuctionId > 0 {
 		wheres = append(wheres, fmt.Sprintf("pa.id=%d", req.AuctionId))
