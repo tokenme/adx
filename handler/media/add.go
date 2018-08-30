@@ -30,7 +30,7 @@ func AddHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser !=1 &&user.IsAdmin !=1, "unauthorized", c) {
 		return
 	}
 	title := utils.Normalize(req.Title)
