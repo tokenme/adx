@@ -51,51 +51,49 @@ func IndexMediaHander(c *gin.Context) {
 const Limit = 15
 const one = 1
 
-type Res struct {
-	Total int            `json:"total"`
-	Data  []common.Media `json:"data"`
-}
-
-func MediaInfoHandler(c *gin.Context) {
+func MediaInfoHandler(c *gin.Context){
 	userContext, exists := c.Get("USER")
 	if Check(!exists, "need login", c) {
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsAdmin != 1, "Is Not Admin", c) {
+	if Check(user.IsAdmin!=1,"Is Not Admin",c){
 		return
 	}
-	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
-	CheckErr(err, c)
-	if page <= 0 {
+	page,err:=strconv.Atoi(c.DefaultQuery("page","1"))
+	CheckErr(err,c)
+	if page<=0 {
 		page = 1
 	}
-	index := (page - one) * Limit
+	index:=(page-one)*Limit
 	db := Service.Db
-	row, resut, err := db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
+	row,resut,err:=db.Query(`SELECT a.id,a.user_id,t.mobile,t.email,
 	a.title,a.domain,a.intro,a.verified,a.online_status,a.verified_at,
 	a.inserted_at,a.updated_at FROM adx.medias AS a 
-	INNER JOIN adx.users AS t ON (a.user_id=t.id) LIMIT %d OFFSET %d`, Limit, index)
-	CheckErr(err, c)
-	info := new(Res)
-	for _, value := range row {
+	INNER JOIN adx.users AS t ON (a.user_id=t.id) LIMIT %d OFFSET %d`,Limit,index)
+	CheckErr(err,c)
+	info:=[]common.Media{}
+	for _,value:=range row{
 		Media := common.Media{
 			Id:           value.Uint64(resut.Map("id")),
 			UserId:       value.Uint64(resut.Map("user_id")),
 			Title:        value.Str(resut.Map("title")),
 			Domain:       value.Str(resut.Map("domain")),
-			Intro:        value.Str(resut.Map("intro")),
+			Intro:		  value.Str(resut.Map("intro")),
 			Verified:     value.Uint(resut.Map("verified")),
 			OnlineStatus: value.Uint(resut.Map("online_status")),
-			Mobile:       value.Str(resut.Map("mobile")),
-			Email:        value.Str(resut.Map("email")),
+			Mobile: 	  value.Str(resut.Map("mobile")),
+			Email: 		  value.Str(resut.Map("email")),
 			Verified_at:  value.Time((resut.Map("verified_at")), time.Local),
 			InsertedAt:   value.Time((resut.Map("inserted_at")), time.Local),
 			UpdatedAt:    value.Time(resut.Map("updated_at"), time.Local),
 		}
-		info.Data = append(info.Data, Media)
+		info = append(info, Media)
 	}
-	info.Total = len(info.Data)
-
-	c.JSON(http.StatusOK, info)
+	row,_,err=db.Query(`SELECT COUNT(*) FROM adx.medias`)
+	CheckErr(err,c)
+	c.JSON(http.StatusOK,gin.H{
+		"Total":row[0].Uint(0),
+		"Data":info,
+	})
 }
