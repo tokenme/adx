@@ -26,7 +26,7 @@ func EventHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1&&user.IsAdmin !=1, "unauthorized", c) {
 		return
 	}
 

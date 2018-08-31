@@ -6,6 +6,7 @@ import (
 	"github.com/tokenme/adx/common"
 	. "github.com/tokenme/adx/handler"
 	"github.com/tokenme/adx/utils"
+	"github.com/ziutek/mymysql/mysql"
 	"net/http"
 )
 
@@ -32,11 +33,17 @@ func AddHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdmin != 1, "unauthorized", c) {
 		return
 	}
 	db := Service.Db
-	rows, _, err := db.Query(`SELECT user_id FROM adx.medias WHERE id=%d AND user_id=%d LIMIT 1`, req.MediaId, user.Id)
+	rows := []mysql.Row{}
+	var err error
+	if user.IsAdmin == 1 {
+		rows, _, err = db.Query(`SELECT user_id FROM adx.medias WHERE id=%d LIMIT 1`, req.MediaId)
+	} else {
+		rows, _, err = db.Query(`SELECT user_id FROM adx.medias WHERE id=%d AND user_id=%d LIMIT 1`, req.MediaId, user.Id)
+	}
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
 		return

@@ -31,19 +31,15 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		where = fmt.Sprintf("telegram_id=%d", telegram.Id)
 	} else if loginInfo.Email != "" && loginInfo.Password != "" {
 		if loginInfo.IsPublisher == 1 {
-			where = fmt.Sprintf("email='%s' AND is_publisher=1", db.Escape(loginInfo.Email))
+			where = fmt.Sprintf("email='%s' AND (is_publisher=1 OR is_admin=1)", db.Escape(loginInfo.Email))
 		} else if loginInfo.IsAdvertiser == 1 {
 			where = fmt.Sprintf("email='%s' AND is_advertiser=1", db.Escape(loginInfo.Email))
-		} else if loginInfo.IsAdmin == 1 {
-			where = fmt.Sprintf("email='%s' AND is_admin=1", db.Escape(loginInfo.Email))
 		}
 	} else if loginInfo.Mobile != "" && loginInfo.Password != "" {
 		if loginInfo.IsPublisher == 1 {
-			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND is_publisher=1", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
+			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND (is_publisher=1 OR is_admin=1)", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
 		} else if loginInfo.IsAdvertiser == 1 {
 			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND is_advertiser=1", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
-		} else if loginInfo.IsAdmin == 1 {
-			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND is_admin=1", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
 		}
 	}
 	if where == "" {
@@ -57,6 +53,7 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 			u.salt, 
 			u.passwd,
 			u.is_admin,
+			u.is_publisher,
 			u.telegram_id,
 			u.telegram_username,
 			u.telegram_firstname,
@@ -81,7 +78,8 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		Email:       row.Str(res.Map("email")),
 		Salt:        row.Str(res.Map("salt")),
 		Password:    row.Str(res.Map("passwd")),
-		IsAdmin: 	 row.Uint(res.Map("is_admin")),
+		IsAdmin:     row.Uint(res.Map("is_admin")),
+		IsPublisher: row.Uint(res.Map("is_publisher")),
 	}
 	telegramId := row.Int64(res.Map("telegram_id"))
 	if telegramId > 0 {
@@ -134,11 +132,9 @@ var AuthorizatorFunc = func(data string, c *gin.Context) bool {
 	db := Service.Db
 	query := `SELECT 1 FROM adx.users WHERE id=%d AND active=1`
 	if user.IsPublisher == 1 {
-		query = fmt.Sprintf("%s AND is_publisher=1 LIMIT 1", query)
+		query = fmt.Sprintf("%s AND (is_publisher=1 OR is_admin=1) LIMIT 1", query)
 	} else if user.IsAdvertiser == 1 {
 		query = fmt.Sprintf("%s AND is_advertiser=1 LIMIT 1", query)
-	} else if user.IsAdmin == 1 {
-		query = fmt.Sprintf("%s AND is_admin=1 LIMIT 1", query)
 	}
 	rows, _, err := db.Query(query, user.Id)
 	if err != nil || len(rows) == 0 {
