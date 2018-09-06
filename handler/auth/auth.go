@@ -31,57 +31,69 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		where = fmt.Sprintf("telegram_id=%d", telegram.Id)
 	} else if loginInfo.Email != "" && loginInfo.Password != "" {
 		if loginInfo.IsPublisher == 1 {
-			where = fmt.Sprintf("email='%s' AND is_publisher=1", db.Escape(loginInfo.Email))
+			where = fmt.Sprintf("email='%s' AND (is_publisher=1 OR is_admin=1)", db.Escape(loginInfo.Email))
 		} else if loginInfo.IsAdvertiser == 1 {
 			where = fmt.Sprintf("email='%s' AND is_advertiser=1", db.Escape(loginInfo.Email))
-		} else if loginInfo.IsAdmin == 1 {
-			where = fmt.Sprintf("email='%s' AND is_admin=1", db.Escape(loginInfo.Email))
+		}
+	} else if loginInfo.Mobile != "" && loginInfo.Password != "" {
+		if loginInfo.IsPublisher == 1 {
+			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND (is_publisher=1 OR is_admin=1)", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
+		} else if loginInfo.IsAdvertiser == 1 {
+			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND is_advertiser=1", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
 		}
 	}
 	if where == "" {
 		return loginInfo.Email, false
 	}
 	query := `SELECT 
-                u.id, 
-                u.email, 
-                u.salt, 
-                u.passwd,
-                u.telegram_id,
-                u.telegram_username,
-                u.telegram_firstname,
-                u.telegram_lastname,
-                u.telegram_avatar,
-                uw.salt,
-                uw.wallet
+			u.id, 
+			u.country_code,
+			u.mobile,
+			u.email, 
+			u.salt, 
+			u.passwd,
+			u.is_admin,
+			u.is_publisher,
+			u.telegram_id,
+			u.telegram_username,
+			u.telegram_firstname,
+			u.telegram_lastname,
+			u.telegram_avatar,
+			uw.salt AS uw_salt,
+			uw.wallet
             FROM adx.users AS u
             INNER JOIN adx.user_wallets AS uw ON (uw.user_id = u.id AND uw.is_main = 1 AND uw.token_type='ETH')
             WHERE %s
             AND u.active = 1
             LIMIT 1`
-	rows, _, err := db.Query(query, where)
+	rows, res, err := db.Query(query, where)
 	if err != nil || len(rows) == 0 {
 		return loginInfo.Email, false
 	}
 	row := rows[0]
 	user := common.User{
-		Id:       row.Uint64(0),
-		Email:    row.Str(1),
-		Salt:     row.Str(2),
-		Password: row.Str(3),
+		Id:          row.Uint64(res.Map("id")),
+		CountryCode: row.Uint(res.Map("country_code")),
+		Mobile:      row.Str(res.Map("mobile")),
+		Email:       row.Str(res.Map("email")),
+		Salt:        row.Str(res.Map("salt")),
+		Password:    row.Str(res.Map("passwd")),
+		IsAdmin:     row.Uint(res.Map("is_admin")),
+		IsPublisher: row.Uint(res.Map("is_publisher")),
 	}
-	telegramId := row.Int64(4)
+	telegramId := row.Int64(res.Map("telegram_id"))
 	if telegramId > 0 {
 		telegram := &common.TelegramUser{
 			Id:        telegramId,
-			Username:  row.Str(5),
-			Firstname: row.Str(6),
-			Lastname:  row.Str(7),
-			Avatar:    row.Str(8),
+			Username:  row.Str(res.Map("telegram_username")),
+			Firstname: row.Str(res.Map("telegram_firstname")),
+			Lastname:  row.Str(res.Map("telegram_lastname")),
+			Avatar:    row.Str(res.Map("telegram_avatar")),
 		}
 		user.Telegram = telegram
 	}
-	walletSalt := row.Str(9)
-	walletEncrypt := row.Str(10)
+	walletSalt := row.Str(res.Map("uw_salt"))
+	walletEncrypt := row.Str(res.Map("wallet"))
 	privateKey, err := utils.AddressDecrypt(walletEncrypt, walletSalt, Config.TokenSalt)
 	if err != nil {
 		return loginInfo.Email, false
@@ -120,11 +132,9 @@ var AuthorizatorFunc = func(data string, c *gin.Context) bool {
 	db := Service.Db
 	query := `SELECT 1 FROM adx.users WHERE id=%d AND active=1`
 	if user.IsPublisher == 1 {
-		query = fmt.Sprintf("%s AND is_publisher=1 LIMIT 1", query)
+		query = fmt.Sprintf("%s AND (is_publisher=1 OR is_admin=1) LIMIT 1", query)
 	} else if user.IsAdvertiser == 1 {
 		query = fmt.Sprintf("%s AND is_advertiser=1 LIMIT 1", query)
-	} else if user.IsAdmin == 1 {
-		query = fmt.Sprintf("%s AND is_admin=1 LIMIT 1", query)
 	}
 	rows, _, err := db.Query(query, user.Id)
 	if err != nil || len(rows) == 0 {

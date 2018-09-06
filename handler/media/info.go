@@ -26,7 +26,7 @@ func InfoHandler(c *gin.Context) {
 
 	db := Service.Db
 	var query string
-	if user.IsPublisher == 1 {
+	if user.IsPublisher == 1 && user.IsAdmin == 0{
 		query = fmt.Sprintf(`SELECT id, title, domain, intro, salt, verified, online_status, inserted_at, updated_at FROM adx.medias WHERE id=%d AND user_id=%d LIMIT 1`, req.Id, user.Id)
 	} else {
 		query = fmt.Sprintf(`SELECT id, title, domain, intro, salt, verified, online_status, inserted_at, updated_at FROM adx.medias WHERE id=%d LIMIT 1`, req.Id)
