@@ -24,7 +24,9 @@ func NewAirdropChecker(service *common.Service, config common.Config, tracker *t
 	if err != nil {
 		log.Error(err.Error())
 	}
-	bot.Debug = config.Debug
+	if  bot != nil {
+		bot.Debug = config.Debug
+	}
 	return &AirdropChecker{
 		service:     service,
 		config:      config,
