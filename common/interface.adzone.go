@@ -28,12 +28,15 @@ type Adzone struct {
 	Desc               string                  `json:"desc"`
 	Rolling            uint                    `json:"rolling"`
 	OnlineStatus       uint                    `json:"online_status"`
-	Placeholder        *PrivateAuctionCreative `json:"placeholder,omitempty"`
+	Placeholder        *PrivateAuctionCreative `json:"placeholder"`
 	UnverifiedAuctions uint                    `json:"unverified_auctions,omitempty"`
 	UnavailableDays    []time.Time             `json:"unavailable_days,omitempty"`
 	EmbedCode          string                  `json:"embed,omitempty"`
 	InsertedAt         time.Time               `json:"inserted_at"`
 	UpdatedAt          time.Time               `json:"updated_at"`
+	Advantage          string                  `json:"advantage"`
+	Location           string                  `json:"location"`
+	Traffic            string                  `json:"traffic"`
 }
 
 func EncodeAdzoneId(key []byte, id uint64) (string, error) {

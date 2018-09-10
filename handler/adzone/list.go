@@ -17,11 +17,8 @@ type ListRequest struct {
 }
 
 type Response struct {
-	Id        int     `json:"id"`
+	Id        uint64 `json:"id"`
 	MediaName string  `json:"media_name"`
-	Count     int     `json:"count"`
-	LowPrice  string  `json:"low_price"`
-	HighPrice string  `json:"high_price"`
 	PV        uint64  `json:"pv"`
 	UV        uint64  `json:"uv"`
 	Clicks    uint64  `json:"clicks"`
@@ -134,12 +131,12 @@ func TrafficListHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1 && user.IsAdmin != 1, "unauthorized", c) {
+	if Check(user.IsAdvertiser != 1, "unauthorized", c) {
 		return
 	}
 	db := Service.Db
 	ch := Service.Clickhouse
-	Query := `SELECT a.id,a.title,MAX(b.min_cpt),MIN(b.min_cpt) From adx.medias AS a INNER JOIN adx.adzones AS b ON(a.id = b.media_id) GROUP BY b.media_id`
+	Query := `SELECT id,title From adx.medias`
 	rows, Result, err := db.Query(Query)
 	if CheckErr(err, c) {
 		return
@@ -152,16 +149,8 @@ func TrafficListHandler(c *gin.Context) {
 	List := []Response{}
 	for _, value := range rows {
 		Response := Response{}
-		Response.Id = value.Int(Result.Map(`id`))
 		Response.MediaName = value.Str(Result.Map(`title`))
-		Response.HighPrice = value.Str(Result.Map(`MAX(b.min_cpt)`))
-		Response.LowPrice = value.Str(Result.Map(`MIN(b.min_cpt)`))
-		Query = `SELECT COUNT(*) FROM adx.adzones WHERE media_id=%d`
-		rows, _, err = db.Query(Query, Response.Id)
-		if CheckErr(err, c) {
-			return
-		}
-		Response.Count = rows[0].Int(0)
+		Response.Id  = value.Uint64(Result.Map(`id`))
 		Query = `SELECT LogDate, pv, uv, clicks
 FROM 
 (
@@ -188,11 +177,10 @@ ORDER BY LogDate ASC;`
 			uv     uint64
 			clicks uint64
 		)
-		wheres = append(wheres, fmt.Sprintf("MediaId=%d", value.Int(Result.Map(`id`))))
+		wheres = append(wheres, fmt.Sprintf("MediaId=%d", Response.Id))
 		wheres = append(wheres, fmt.Sprintf("LogDate>='%s' AND LogDate <='%s'", startDateStr, endDateStr))
 		where := strings.Join(wheres, " AND ")
 		rows, err := ch.Query(fmt.Sprintf(Query, where, where))
-		fmt.Println(fmt.Sprintf(Query, where, where))
 		if CheckErr(err, c) {
 			raven.CaptureError(err, nil)
 			return
