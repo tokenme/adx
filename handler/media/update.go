@@ -14,7 +14,7 @@ import (
 type UpdateRequest struct {
 	Id           uint64 `form:"id" json:"id"`
 	Title        string `form:"title" json:"title"`
-	Desc         string `form:"desc" json:"desc"`
+	Url          string `from:"placeholder_img" json:"url"`
 	OnlineStatus uint   `form:"online_status" json:"online_status"`
 }
 
@@ -36,13 +36,13 @@ func UpdateHandler(c *gin.Context) {
 	db := Service.Db
 
 	title := utils.Normalize(req.Title)
-	desc := utils.Normalize(req.Desc)
+	url := utils.Normalize(req.Url)
 	var set = []string{fmt.Sprintf("online_status=%d", req.OnlineStatus)}
 	if title != "" {
 		set = append(set, fmt.Sprintf("title='%s'", db.Escape(title)))
 	}
-	if desc != "" {
-		set = append(set, fmt.Sprintf("intro='%s'", db.Escape(desc)))
+	if url != "" {
+		set = append(set, fmt.Sprintf("url='%s'", db.Escape(url)))
 	}
 	var err error
 	if user.IsAdmin == 1 {

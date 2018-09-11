@@ -16,7 +16,8 @@ import (
 type AddRequest struct {
 	Title  string `form:"title" json:"title" binding:"required"`
 	Domain string `form:"domain" json:"domain" binding:"required"`
-	Desc   string `form:"desc" json:"desc" binding:"required"`
+	ImgUrl    string `form:"placeholder_img" json:"placeholder_img" binding:"required"`
+
 }
 
 func AddHandler(c *gin.Context) {
@@ -30,20 +31,20 @@ func AddHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1 && user.IsAdvertiser !=1 &&user.IsAdmin !=1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1 && user.IsAdmin != 1, "unauthorized", c) {
 		return
 	}
 	title := utils.Normalize(req.Title)
 	domain := utils.Normalize(req.Domain)
+	url1 := utils.Normalize(req.ImgUrl)
 	parsedUrl, err := url.Parse(domain)
 	if CheckErr(err, c) {
 		return
 	}
 	domain = fmt.Sprintf("%s://%s", parsedUrl.Scheme, parsedUrl.Host)
-	desc := utils.Normalize(req.Desc)
 	identity, _ := utils.Salt()
 	db := Service.Db
-	_, ret, err := db.Query(`INSERT INTO adx.medias (user_id, title, domain, intro, salt) VALUES (%d, '%s', '%s', '%s', '%s')`, user.Id, db.Escape(title), db.Escape(domain), db.Escape(desc), db.Escape(identity))
+	_, ret, err := db.Query(`INSERT INTO adx.medias (user_id, title, domain, url, salt) VALUES (%d, '%s', '%s', '%s', '%s')`, user.Id, db.Escape(title), db.Escape(domain), db.Escape(url1), db.Escape(identity))
 	if err != nil && err.(*mysql.Error).Code == mysql.ER_DUP_ENTRY {
 		c.JSON(http.StatusOK, APIError{Code: DUPLICATE_MEDIA_ERROR, Msg: "media title or domain already exists"})
 		return
@@ -57,7 +58,7 @@ func AddHandler(c *gin.Context) {
 		Id:         mediaId,
 		Title:      title,
 		Domain:     domain,
-		Desc:       desc,
+		ImgUrl:        url1,
 		Identity:   identity,
 		InsertedAt: time.Now(),
 		UpdatedAt:  time.Now(),

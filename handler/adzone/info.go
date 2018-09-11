@@ -6,6 +6,7 @@ import (
 	"github.com/tokenme/adx/common"
 	. "github.com/tokenme/adx/handler"
 	"net/http"
+	"log"
 )
 
 type InfoRequest struct {
@@ -23,7 +24,9 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-
+	if Check(user.IsPublisher !=1 && user.IsAdvertiser !=1,"You don't have permission to access",c) {
+		return
+	}
 	db := Service.Db
 	query := `SELECT
 	a.id ,
@@ -44,7 +47,10 @@ func InfoHandler(c *gin.Context) {
 	m.domain ,
 	m.online_status ,
 	a.inserted_at ,
-	a.updated_at
+	a.updated_at ,
+	a.advantage,
+	a.location,
+	a.traffic
 FROM
 	adx.adzones AS a
 INNER JOIN adx.medias AS m ON ( m.id = a.media_id )
@@ -62,7 +68,7 @@ WHERE a.id=%d`
 	var placeholder *common.PrivateAuctionCreative
 	placeholderUrl := row.Str(11)
 	placeholderImg := row.Str(12)
-	if user.IsPublisher == 1 && placeholderUrl != "" && placeholderImg != "" {
+	if placeholderUrl != "" && placeholderImg != "" {
 		placeholder = &common.PrivateAuctionCreative{
 			Url: placeholderUrl,
 			Img: placeholderImg,
@@ -90,8 +96,11 @@ WHERE a.id=%d`
 			Domain:       row.Str(15),
 			OnlineStatus: row.Uint(16),
 		},
-		InsertedAt: row.ForceLocaltime(17),
-		UpdatedAt:  row.ForceLocaltime(18),
+		InsertedAt:  row.ForceLocaltime(17),
+		UpdatedAt:   row.ForceLocaltime(18),
+		Advantage:row.Str(19),
+		Location:row.Str(20),
+		Traffic:row.Str(21),
 	}
 	unavailableDays, err := adzone.GetUnavailableDays(Service)
 	if CheckErr(err, c) {
