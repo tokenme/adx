@@ -112,6 +112,7 @@ FROM
 INNER JOIN adx.tokens AS t ON (t.address=a.token_address)
 WHERE %s`
 	rows, _, err := db.Query(query, where, limit, MAX_PAGE_SIZE)
+
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
 		return

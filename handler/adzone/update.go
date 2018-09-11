@@ -20,6 +20,9 @@ type UpdateRequest struct {
 	OnlineStatus   uint    `form:"online_status" json:"online_status"`
 	PlaceholderUrl string  `form:"placeholder_url" json:"placeholder_url"`
 	PlaceholderImg string  `form:"placeholder_img" json:"placeholder_img"`
+	Advantage      string  `from:"advantage" json:"advantage" `
+	Location       string  `from:"location" json:"location" `
+	Traffic        string  `from:"traffic" json:"traffic" `
 }
 
 func UpdateHandler(c *gin.Context) {
@@ -58,12 +61,20 @@ func UpdateHandler(c *gin.Context) {
 	if req.PlaceholderUrl != "" && req.PlaceholderImg != "" {
 		set = append(set, fmt.Sprintf("placeholder_url='%s', placeholder_img='%s'", db.Escape(req.PlaceholderUrl), db.Escape(req.PlaceholderImg)))
 	}
+	if req.Advantage != "" {
+		set = append(set, fmt.Sprintf("advantage = '%s' ", db.Escape(req.Advantage)))
+	}
+	if req.Location != "" {
+		set = append(set, fmt.Sprintf("location = '%s' ", db.Escape(req.Location)))
+	}
+	if req.Traffic != "" {
+		set = append(set, fmt.Sprintf("traffic = '%s' ", db.Escape(req.Traffic)))
+	}
 	var err error
 	if user.IsAdmin == 1 {
 		_, _, err = db.Query(`UPDATE adx.adzones SET %s WHERE id=%d `, strings.Join(set, ","), req.Id)
 	} else {
 		_, _, err = db.Query(`UPDATE adx.adzones SET %s WHERE id=%d AND user_id=%d`, strings.Join(set, ","), req.Id, user.Id)
-
 	}
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)

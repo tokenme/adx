@@ -24,14 +24,17 @@ func ListHandler(c *gin.Context) {
 		raven.CaptureError(err, nil)
 		return
 	}
-
 	var medias []common.Media
 	for _, row := range rows {
+		 placeholder := common.PrivateAuctionCreative{}
+		if row.Str(3) != "" {
+			placeholder.Img = row.Str(3)
+		}
 		media := common.Media{
 			Id:           row.Uint64(0),
 			Title:        row.Str(1),
 			Domain:       row.Str(2),
-			ImgUrl:       row.Str(3),
+			ImgUrl:       placeholder.GetImgUrl(Config),
 			Identity:     row.Str(4),
 			Verified:     row.Uint(5),
 			OnlineStatus: row.Uint(6),

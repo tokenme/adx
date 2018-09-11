@@ -16,8 +16,7 @@ import (
 type AddRequest struct {
 	Title  string `form:"title" json:"title" binding:"required"`
 	Domain string `form:"domain" json:"domain" binding:"required"`
-	ImgUrl    string `form:"placeholder_img" json:"placeholder_img" binding:"required"`
-
+	ImgUrl string `form:"placeholder_img" json:"placeholder_img" binding:"required"`
 }
 
 func AddHandler(c *gin.Context) {
@@ -58,7 +57,7 @@ func AddHandler(c *gin.Context) {
 		Id:         mediaId,
 		Title:      title,
 		Domain:     domain,
-		ImgUrl:      ImgUrl,
+		ImgUrl:     ImgUrl,
 		Identity:   identity,
 		InsertedAt: time.Now(),
 		UpdatedAt:  time.Now(),

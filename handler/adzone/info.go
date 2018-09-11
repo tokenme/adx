@@ -23,7 +23,7 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsPublisher !=1 && user.IsAdvertiser !=1,"You don't have permission to access",c) {
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1, "You don't have permission to access", c) {
 		return
 	}
 	db := Service.Db
@@ -47,6 +47,9 @@ func InfoHandler(c *gin.Context) {
 	m.online_status ,
 	a.inserted_at ,
 	a.updated_at ,
+	a.advantage,
+	a.location,
+	a.traffic,
 	a.advantage,
 	a.location,
 	a.traffic
@@ -74,6 +77,7 @@ WHERE a.id=%d`
 		}
 		placeholder.ImgUrl = placeholder.GetImgUrl(Config)
 	}
+	println()
 	adzone := common.Adzone{
 		Id:  row.Uint64(0),
 		Url: row.Str(1),
@@ -86,7 +90,7 @@ WHERE a.id=%d`
 		MinCPT:       row.ForceFloat(6),
 		Settlement:   row.Uint(7),
 		Rolling:      row.Uint(8),
-		Intro:         row.Str(9),
+		Intro:        row.Str(9),
 		OnlineStatus: row.Uint(10),
 		Placeholder:  placeholder,
 		Media: common.Media{
@@ -95,11 +99,11 @@ WHERE a.id=%d`
 			Domain:       row.Str(15),
 			OnlineStatus: row.Uint(16),
 		},
-		InsertedAt:  row.ForceLocaltime(17),
-		UpdatedAt:   row.ForceLocaltime(18),
-		Advantage:row.Str(19),
-		Location:row.Str(20),
-		Traffic:row.Str(21),
+		InsertedAt: row.ForceLocaltime(17),
+		UpdatedAt:  row.ForceLocaltime(18),
+		Advantage:  row.Str(19),
+		Location:   row.Str(20),
+		Traffic:    row.Str(21),
 	}
 	unavailableDays, err := adzone.GetUnavailableDays(Service)
 	if CheckErr(err, c) {

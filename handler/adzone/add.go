@@ -25,7 +25,7 @@ type AddRequest struct {
 	Traffic        string  `from:"traffic" json:"traffic" `
 }
 
-func AddHandler(c *gin.Context) {
+func AddHandler(c *gin .Context) {
 	var req AddRequest
 	if CheckErr(c.Bind(&req), c) {
 		return
@@ -57,9 +57,9 @@ func AddHandler(c *gin.Context) {
 	mediaUserId := rows[0].Uint64(0)
 	desc := utils.Normalize(req.Desc)
 	if req.PlaceholderImg != "" && req.PlaceholderUrl != "" {
-		_, _, err = db.Query(`INSERT INTO adx.adzones (user_id, media_id, size_id, min_cpt, settlement, rolling, url, intro, placeholder_url, placeholder_img,advantage,location,traffic) VALUES (%d, %d, %d, %.18f, %d, %d, '%s', '%s', '%s', '%s','%s','%s','%s')`, mediaUserId, req.MediaId, req.SizeId, req.MinCPT, req.Settlement, req.Rolling, db.Escape(req.Url), db.Escape(desc), db.Escape(req.PlaceholderUrl), db.Escape(req.PlaceholderImg),db.Escape(req.Advantage),db.Escape(req.Location),db.Escape(req.Traffic))
+		_, _, err = db.Query(`INSERT INTO adx.adzones (user_id, media_id, size_id, min_cpt, settlement, rolling, url, intro, placeholder_url, placeholder_img,advantage,location,traffic) VALUES (%d, %d, %d, %.18f, %d, %d, '%s', '%s', '%s', '%s','%s','%s','%s')`, mediaUserId, req.MediaId, req.SizeId, req.MinCPT, req.Settlement, req.Rolling, db.Escape(req.Url), db.Escape(desc), db.Escape(req.PlaceholderUrl), db.Escape(req.PlaceholderImg), db.Escape(req.Advantage), db.Escape(req.Location), db.Escape(req.Traffic))
 	} else {
-		_, _, err = db.Query(`INSERT INTO adx.adzones (user_id, media_id, size_id, min_cpt, settlement, rolling, url,intro,advantage,location,traffic) VALUES (%d, %d, %d, %.18f, %d, %d, '%s', '%s', '%s','%s','%s')`, mediaUserId, req.MediaId, req.SizeId, req.MinCPT, req.Settlement, req.Rolling, db.Escape(req.Url), db.Escape(desc),db.Escape(req.Advantage),db.Escape(req.Location),db.Escape(req.Traffic))
+		_, _, err = db.Query(`INSERT INTO adx.adzones (user_id, media_id, size_id, min_cpt, settlement, rolling, url,intro,advantage,location,traffic) VALUES (%d, %d, %d, %.18f, %d, %d, '%s', '%s', '%s','%s','%s')`, mediaUserId, req.MediaId, req.SizeId, req.MinCPT, req.Settlement, req.Rolling, db.Escape(req.Url), db.Escape(desc), db.Escape(req.Advantage), db.Escape(req.Location), db.Escape(req.Traffic))
 	}
 
 	if CheckErr(err, c) {
