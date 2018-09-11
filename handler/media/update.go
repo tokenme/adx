@@ -12,10 +12,10 @@ import (
 )
 
 type UpdateRequest struct {
-	Id           uint64 `form:"id" json:"id"`
-	Title        string `form:"title" json:"title"`
-	Url          string `from:"placeholder_img" json:"url"`
-	OnlineStatus uint   `form:"online_status" json:"online_status"`
+	Id              uint64 `form:"id" json:"id"`
+	Title           string `form:"title" json:"title"`
+	placeholder_img string `from:"placeholder_img" json:"placeholder_img"`
+	OnlineStatus    uint   `form:"online_status" json:"online_status"`
 }
 
 func UpdateHandler(c *gin.Context) {
@@ -36,7 +36,7 @@ func UpdateHandler(c *gin.Context) {
 	db := Service.Db
 
 	title := utils.Normalize(req.Title)
-	url := utils.Normalize(req.Url)
+	url := utils.Normalize(req.placeholder_img)
 	var set = []string{fmt.Sprintf("online_status=%d", req.OnlineStatus)}
 	if title != "" {
 		set = append(set, fmt.Sprintf("title='%s'", db.Escape(title)))

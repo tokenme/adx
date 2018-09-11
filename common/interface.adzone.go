@@ -25,7 +25,7 @@ type Adzone struct {
 	MinCPM             float64                 `json:"min_cpm,omitempty"`
 	SuggestCPT         float64                 `json:"suggest_cpt,omitempty"`
 	Settlement         Settlement              `json:"settlement"`
-	Desc               string                  `json:"desc"`
+	Intro              string                  `json:"intro"`
 	Rolling            uint                    `json:"rolling"`
 	OnlineStatus       uint                    `json:"online_status"`
 	Placeholder        *PrivateAuctionCreative `json:"placeholder"`

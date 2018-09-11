@@ -6,7 +6,6 @@ import (
 	"github.com/tokenme/adx/common"
 	. "github.com/tokenme/adx/handler"
 	"net/http"
-	"log"
 )
 
 type InfoRequest struct {
@@ -87,7 +86,7 @@ WHERE a.id=%d`
 		MinCPT:       row.ForceFloat(6),
 		Settlement:   row.Uint(7),
 		Rolling:      row.Uint(8),
-		Desc:         row.Str(9),
+		Intro:         row.Str(9),
 		OnlineStatus: row.Uint(10),
 		Placeholder:  placeholder,
 		Media: common.Media{

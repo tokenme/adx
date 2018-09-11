@@ -25,7 +25,6 @@ type Media struct {
 	InsertedAt   time.Time `json:"inserted_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	Adzones      []Adzone  `json:"adzones,omitempty"`
-	Picture_url  string    `json:"pictures"`
 }
 
 func (this Media) Complete() Media {
