@@ -170,7 +170,7 @@ HAVING num >= %d`, subWhere, days)
 			MinCPT:       row.ForceFloat(6),
 			Settlement:   row.Uint(7),
 			Rolling:      row.Uint(8),
-			Desc:         row.Str(9),
+			Intro:         row.Str(9),
 			OnlineStatus: row.Uint(10),
 			Media: common.Media{
 				Id:           row.Uint64(11),

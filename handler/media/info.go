@@ -28,14 +28,13 @@ func InfoHandler(c *gin.Context) {
 	var query string
 	if user.IsPublisher == 1 && user.IsAdmin == 0 {
 		query = fmt.Sprintf(`SELECT a.id, a.title, a.domain, a.url, a.salt, a.verified, a.online_status, a.inserted_at, 
-		a.updated_at,p.picture_url FROM adx.medias AS a LEFT JOIN adx.media_picture 
-		AS p ON ( p.media_id = a.id) WHERE a.id=%d AND a.user_id=%d LIMIT 1`, req.Id, user.Id)
+		a.updated_at FROM adx.medias AS a 
+		WHERE a.id=%d AND a.user_id=%d LIMIT 1`, req.Id, user.Id)
 	} else {
 		query = fmt.Sprintf(`SELECT a.id, a.title, a.domain, 
 		a.url, a.salt, a.verified, a.online_status, a.inserted_at, 
-		a.updated_at,p.picture_url
+		a.updated_at
 		FROM adx.medias AS a
-		LEFT JOIN adx.media_picture AS p ON ( p.media_id = a.id)
 		WHERE a.id=%d LIMIT 1`, req.Id)
 	}
 	rows, _, err := db.Query(query)
@@ -65,7 +64,6 @@ func InfoHandler(c *gin.Context) {
 		OnlineStatus: row.Uint(6),
 		InsertedAt:   row.ForceLocaltime(7),
 		UpdatedAt:    row.ForceLocaltime(8),
-		Picture_url:  row.Str(9),
 	}
 	query = `SELECT adzone.id,
 adzone.size_id,size.width,
@@ -100,7 +98,7 @@ WHERE media.id = %d GROUP BY adzone.id`
 			Url:          row.Str(Result.Map(`url`)),
 			MinCPT:       row.Float(Result.Map(`min_cpt`)),
 			MinCPM:       row.Float(Result.Map(`min_cpm`)),
-			Desc:         row.Str(Result.Map(`intro`)),
+			Intro:         row.Str(Result.Map(`intro`)),
 			Rolling:      row.Uint(Result.Map(`rolling`)),
 			OnlineStatus: row.Uint(Result.Map(`online_status`)),
 			InsertedAt:   row.ForceLocaltime(Result.Map(`inserted_at`)),

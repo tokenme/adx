@@ -76,7 +76,7 @@ func ListHandler(c *gin.Context) {
 			MinCPT:       row.ForceFloat(6),
 			Settlement:   row.Uint(7),
 			Rolling:      row.Uint(8),
-			Desc:         row.Str(9),
+			Intro:         row.Str(9),
 			OnlineStatus: row.Uint(10),
 			Placeholder:  placeholder,
 			Media: common.Media{
