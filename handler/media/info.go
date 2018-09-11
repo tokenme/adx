@@ -28,14 +28,13 @@ func InfoHandler(c *gin.Context) {
 	var query string
 	if user.IsPublisher == 1 && user.IsAdmin == 0 {
 		query = fmt.Sprintf(`SELECT a.id, a.title, a.domain, a.url, a.salt, a.verified, a.online_status, a.inserted_at, 
-		a.updated_at,p.picture_url FROM adx.medias AS a LEFT JOIN adx.media_picture 
-		AS p ON ( p.media_id = a.id) WHERE a.id=%d AND a.user_id=%d LIMIT 1`, req.Id, user.Id)
+		a.updated_at FROM adx.medias AS a 
+		WHERE a.id=%d AND a.user_id=%d LIMIT 1`, req.Id, user.Id)
 	} else {
 		query = fmt.Sprintf(`SELECT a.id, a.title, a.domain, 
 		a.url, a.salt, a.verified, a.online_status, a.inserted_at, 
-		a.updated_at,p.picture_url
+		a.updated_at 
 		FROM adx.medias AS a
-		LEFT JOIN adx.media_picture AS p ON ( p.media_id = a.id)
 		WHERE a.id=%d LIMIT 1`, req.Id)
 	}
 	rows, _, err := db.Query(query)
@@ -48,11 +47,11 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 	row := rows[0]
-	ImgUrl:= ""
+	ImgUrl := ""
 	Img := &common.PrivateAuctionCreative{
-		Url:row.Str(2),
-		Img:row.Str(3), 	}
-	if Img.Url != "" && Img.Img != ""{
+		Url: row.Str(2),
+		Img: row.Str(3)}
+	if Img.Url != "" && Img.Img != "" {
 		ImgUrl = Img.GetImgUrl(Config)
 	}
 	media := common.Media{
@@ -65,7 +64,6 @@ func InfoHandler(c *gin.Context) {
 		OnlineStatus: row.Uint(6),
 		InsertedAt:   row.ForceLocaltime(7),
 		UpdatedAt:    row.ForceLocaltime(8),
-		Picture_url:  row.Str(9),
 	}
 	query = `SELECT adzone.id,
 adzone.size_id,size.width,
@@ -76,11 +74,14 @@ adzone.user_id,
 adzone.rolling,adzone.inserted_at,
 adzone.updated_at,
 adzone.settlement,
-adzone.online_status
+adzone.online_status,
+adzone.advantage,
+adzone.location,
+adzone.traffic
 FROM adx.adzones AS adzone
 INNER JOIN adx.medias AS media ON (media.id = adzone.media_id)
 INNER JOIN adx.sizes AS size   ON (adzone.size_id = size.id)
-WHERE media.id = %d GROUP BY adzone.id`
+WHERE media.id = %d AND adzone.online_status = 1 GROUP BY adzone.id`
 	rows, Result, err := db.Query(query, req.Id)
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
@@ -100,11 +101,14 @@ WHERE media.id = %d GROUP BY adzone.id`
 			Url:          row.Str(Result.Map(`url`)),
 			MinCPT:       row.Float(Result.Map(`min_cpt`)),
 			MinCPM:       row.Float(Result.Map(`min_cpm`)),
-			Desc:         row.Str(Result.Map(`intro`)),
+			Intro:        row.Str(Result.Map(`intro`)),
 			Rolling:      row.Uint(Result.Map(`rolling`)),
 			OnlineStatus: row.Uint(Result.Map(`online_status`)),
 			InsertedAt:   row.ForceLocaltime(Result.Map(`inserted_at`)),
 			UpdatedAt:    row.ForceLocaltime(Result.Map(`updated_at`)),
+			Advantage:    row.Str(Result.Map("advantage")),
+			Location:     row.Str(Result.Map("location")),
+			Traffic:      row.Str(Result.Map("traffic")),
 		})
 	}
 	media.Adzones = Adzones
