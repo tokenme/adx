@@ -23,7 +23,9 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1, "You don't have permission to access", c) {
+		return
+	}
 	db := Service.Db
 	query := `SELECT
 	a.id ,
@@ -44,7 +46,13 @@ func InfoHandler(c *gin.Context) {
 	m.domain ,
 	m.online_status ,
 	a.inserted_at ,
-	a.updated_at
+	a.updated_at ,
+	a.advantage,
+	a.location,
+	a.traffic,
+	a.advantage,
+	a.location,
+	a.traffic
 FROM
 	adx.adzones AS a
 INNER JOIN adx.medias AS m ON ( m.id = a.media_id )
@@ -62,13 +70,14 @@ WHERE a.id=%d`
 	var placeholder *common.PrivateAuctionCreative
 	placeholderUrl := row.Str(11)
 	placeholderImg := row.Str(12)
-	if user.IsPublisher == 1 && placeholderUrl != "" && placeholderImg != "" {
+	if placeholderUrl != "" && placeholderImg != "" {
 		placeholder = &common.PrivateAuctionCreative{
 			Url: placeholderUrl,
 			Img: placeholderImg,
 		}
 		placeholder.ImgUrl = placeholder.GetImgUrl(Config)
 	}
+	println()
 	adzone := common.Adzone{
 		Id:  row.Uint64(0),
 		Url: row.Str(1),
@@ -81,7 +90,7 @@ WHERE a.id=%d`
 		MinCPT:       row.ForceFloat(6),
 		Settlement:   row.Uint(7),
 		Rolling:      row.Uint(8),
-		Desc:         row.Str(9),
+		Intro:        row.Str(9),
 		OnlineStatus: row.Uint(10),
 		Placeholder:  placeholder,
 		Media: common.Media{
@@ -92,6 +101,9 @@ WHERE a.id=%d`
 		},
 		InsertedAt: row.ForceLocaltime(17),
 		UpdatedAt:  row.ForceLocaltime(18),
+		Advantage:  row.Str(19),
+		Location:   row.Str(20),
+		Traffic:    row.Str(21),
 	}
 	unavailableDays, err := adzone.GetUnavailableDays(Service)
 	if CheckErr(err, c) {

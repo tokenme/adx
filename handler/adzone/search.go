@@ -170,7 +170,7 @@ HAVING num >= %d`, subWhere, days)
 			MinCPT:       row.ForceFloat(6),
 			Settlement:   row.Uint(7),
 			Rolling:      row.Uint(8),
-			Desc:         row.Str(9),
+			Intro:        row.Str(9),
 			OnlineStatus: row.Uint(10),
 			Media: common.Media{
 				Id:           row.Uint64(11),
@@ -224,4 +224,95 @@ GROUP BY
 	c.JSON(http.StatusOK, adzones)
 	return
 
+}
+
+type AdzoneMedia struct {
+	Id          uint    `json:"id"`
+	MediaName   string  `json:"media_name"`
+	AdzoneCount uint64  `json:"adzone_count"`
+	HighPrice   float64 `json:"high_price"`
+	LowPrice    float64 `json:"low_price"`
+}
+
+func MediaListHandler(c *gin.Context) {
+	userContext, exists := c.Get("USER")
+	if Check(!exists, "need login", c) {
+		return
+	}
+	user := userContext.(common.User)
+	if Check(user.IsAdvertiser != 1, "unauthorized", c) {
+		return
+	}
+	var req SearchRequest
+	opt := c.Query("options")
+	json.Unmarshal([]byte(opt), &req)
+	db := Service.Db
+	Where := []string{}
+	Query := ""
+	if req.MediaId > 0 || req.Domain != "" || len(req.DateRange) > 0 || len(req.SizeIds) > 0 {
+		if req.MediaId > 0 {
+			Where = append(Where, fmt.Sprintf("media.id=%d", req.MediaId))
+		}
+		if len(req.SizeIds) > 0 {
+			var sizeIds []string
+			for _, sizeId := range req.SizeIds {
+				sizeIds = append(sizeIds, fmt.Sprintf("%d", sizeId))
+			}
+			Where = append(Where, fmt.Sprintf("adzon.size_id IN (%s)", strings.Join(sizeIds, ",")))
+		}
+		if req.Domain != "" {
+			Where = append(Where, fmt.Sprintf("adzon.url='%s'", req.Domain))
+		}
+		var (
+			startDate time.Time
+			endDate   time.Time
+			err       error
+		)
+		if len(req.DateRange) == 2 {
+			startDate, err = time.Parse("2006-01-02", req.DateRange[0])
+			if CheckErr(err, c) {
+				return
+			}
+			endDate, err = time.Parse("2006-01-02", req.DateRange[1])
+			if CheckErr(err, c) {
+				return
+			}
+		} else {
+			startDate = utils.TimeToDate(time.Now())
+			endDate = startDate.AddDate(0, 3, 0)
+		}
+		Where = append(Where, fmt.Sprintf("aaday.record_on BETWEEN '%s' AND '%s'", startDate.Format("2006-01-02"), endDate.Format("2006-01-02")))
+		Where = append(Where, fmt.Sprint("media.online_status = 1 AND adzon.online_status =1"))
+		WHERES := strings.Join(Where, " AND ")
+		Querys := `SELECT media.id,media.title,MAX(adzon.min_cpt),MIN(adzon.min_cpt),COUNT(*)
+FROM adx.medias AS media
+INNER JOIN adx.adzones AS adzon ON ( adzon.media_id = media.id )
+INNER JOIN adx.adzone_auction_days AS aaday ON ( aaday.adzone_id = adzon.id)
+WHERE %s  
+`
+		Query = fmt.Sprintf(Querys, WHERES)
+	} else {
+		Query = `
+SELECT media.id,media.title,MAX(adzon.min_cpt),MIN(adzon.min_cpt) ,COUNT(*)
+From adx.medias AS media INNER JOIN adx.adzones 
+AS adzon ON(media.id = adzon.media_id) WHERE media.online_status = 1 AND adzon.online_status =1 GROUP BY adzon.media_id`
+	}
+	rows, Result, err := db.Query(Query)
+	if CheckErr(err, c) {
+		return
+	}
+	AdzoneMediaList := []AdzoneMedia{}
+	for _, value := range rows {
+		Media := AdzoneMedia{}
+		Media.Id = value.Uint(Result.Map(`id`))
+		Media.MediaName = value.Str(Result.Map(`title`))
+		Media.HighPrice = value.Float(Result.Map(`MAX(adzon.min_cpt)`))
+		Media.LowPrice = value.Float(Result.Map(`MIN(adzon.min_cpt)`))
+		Media.AdzoneCount = value.Uint64(Result.Map(`COUNT(*)`))
+		AdzoneMediaList = append(AdzoneMediaList, Media)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		`Data`: AdzoneMediaList,
+	})
 }

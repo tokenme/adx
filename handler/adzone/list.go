@@ -1,16 +1,28 @@
 package adzone
 
 import (
+	"fmt"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 	"github.com/tokenme/adx/common"
 	. "github.com/tokenme/adx/handler"
 	"github.com/ziutek/mymysql/mysql"
 	"net/http"
+	"strings"
+	"time"
 )
 
 type ListRequest struct {
 	MediaId uint64 `form:"media_id" json:"media_id" binding:"required"`
+}
+
+type Response struct {
+	Id        uint64  `json:"id"`
+	MediaName string  `json:"media_name"`
+	PV        uint64  `json:"pv"`
+	UV        uint64  `json:"uv"`
+	Clicks    uint64  `json:"clicks"`
+	Ctr       float64 `json:"ctr"`
 }
 
 func ListHandler(c *gin.Context) {
@@ -32,9 +44,9 @@ func ListHandler(c *gin.Context) {
 	rows := []mysql.Row{}
 	var err error
 	if user.IsAdmin == 1 {
-		rows, _, err = db.Query(`SELECT a.id, a.url, a.size_id, s.width, s.height, a.min_cpm, a.min_cpt, a.settlement, a.rolling, a.intro, a.online_status, a.placeholder_img, a.placeholder_url, m.id, m.title, m.domain, m.online_status, a.inserted_at, a.updated_at FROM adx.adzones AS a INNER JOIN adx.medias AS m ON (m.id=a.media_id) INNER JOIN adx.sizes AS s ON (s.id=a.size_id) WHERE a.media_id=%d ORDER BY a.id DESC`, req.MediaId)
+		rows, _, err = db.Query(`SELECT a.id, a.url, a.size_id, s.width, s.height, a.min_cpm, a.min_cpt, a.settlement, a.rolling, a.intro, a.online_status, a.placeholder_img, a.placeholder_url, m.id, m.title, m.domain, m.online_status, a.inserted_at, a.updated_at,a.advantage, a.location, a.traffic FROM adx.adzones AS a INNER JOIN adx.medias AS m ON (m.id=a.media_id) INNER JOIN adx.sizes AS s ON (s.id=a.size_id) WHERE a.media_id=%d ORDER BY a.id DESC`, req.MediaId)
 	} else {
-		rows, _, err = db.Query(`SELECT a.id, a.url, a.size_id, s.width, s.height, a.min_cpm, a.min_cpt, a.settlement, a.rolling, a.intro, a.online_status, a.placeholder_img, a.placeholder_url, m.id, m.title, m.domain, m.online_status, a.inserted_at, a.updated_at FROM adx.adzones AS a INNER JOIN adx.medias AS m ON (m.id=a.media_id) INNER JOIN adx.sizes AS s ON (s.id=a.size_id) WHERE a.media_id=%d AND a.user_id=%d ORDER BY a.id DESC`, req.MediaId, user.Id)
+		rows, _, err = db.Query(`SELECT a.id, a.url, a.size_id, s.width, s.height, a.min_cpm, a.min_cpt, a.settlement, a.rolling, a.intro, a.online_status, a.placeholder_img, a.placeholder_url, m.id, m.title, m.domain, m.online_status, a.inserted_at, a.updated_at, a.advantage, a.location, a.traffic FROM adx.adzones AS a INNER JOIN adx.medias AS m ON (m.id=a.media_id) INNER JOIN adx.sizes AS s ON (s.id=a.size_id) WHERE a.media_id=%d AND a.user_id=%d ORDER BY a.id DESC`, req.MediaId, user.Id)
 	}
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
@@ -64,7 +76,7 @@ func ListHandler(c *gin.Context) {
 			MinCPT:       row.ForceFloat(6),
 			Settlement:   row.Uint(7),
 			Rolling:      row.Uint(8),
-			Desc:         row.Str(9),
+			Intro:        row.Str(9),
 			OnlineStatus: row.Uint(10),
 			Placeholder:  placeholder,
 			Media: common.Media{
@@ -75,6 +87,9 @@ func ListHandler(c *gin.Context) {
 			},
 			InsertedAt: row.ForceLocaltime(17),
 			UpdatedAt:  row.ForceLocaltime(18),
+			Advantage:  row.Str(19),
+			Location:   row.Str(20),
+			Traffic:    row.Str(21),
 		}
 		adzone.EmbedCode = adzone.GetEmbedCode(Config)
 		adzones = append(adzones, adzone)
@@ -111,4 +126,87 @@ GROUP BY
 	c.JSON(http.StatusOK, adzones)
 	return
 
+}
+
+func TrafficListHandler(c *gin.Context) {
+	userContext, exists := c.Get("USER")
+	if Check(!exists, "need login", c) {
+		return
+	}
+	user := userContext.(common.User)
+	if Check(user.IsAdvertiser != 1, "unauthorized", c) {
+		return
+	}
+	db := Service.Db
+	ch := Service.Clickhouse
+	Query := `SELECT id,title From adx.medias WHERE online_status = 1  AND verified = 1`
+	rows, Result, err := db.Query(Query)
+	if CheckErr(err, c) {
+		return
+	}
+	var (
+		Now          = time.Now()
+		endDateStr   = time.Now().Format("2006-01-02")
+		startDateStr = Now.AddDate(0, 0, -7).Format("2006-01-02")
+	)
+	List := []Response{}
+	for _, value := range rows {
+		Response := Response{}
+		Response.MediaName = value.Str(Result.Map(`title`))
+		Response.Id = value.Uint64(Result.Map(`id`))
+		Query = `SELECT LogDate, pv, uv, clicks
+FROM 
+(
+    SELECT 
+        LogDate, 
+        COUNTDistinct(ReqId) AS pv, 
+        COUNTDistinct(Cookie) AS uv 
+    FROM adx.reqs 
+    WHERE %s
+    GROUP BY LogDate
+) ANY LEFT JOIN (
+    SELECT 
+        LogDate, 
+        COUNTDistinct(ReqId) AS clicks 
+    FROM adx.clicks 
+    WHERE %s
+    GROUP BY LogDate
+) USING LogDate
+ORDER BY LogDate ASC;`
+		var (
+			wheres []string
+			date   time.Time
+			pv     uint64
+			uv     uint64
+			clicks uint64
+		)
+		wheres = append(wheres, fmt.Sprintf("MediaId=%d", Response.Id))
+		wheres = append(wheres, fmt.Sprintf("LogDate>='%s' AND LogDate <='%s'", startDateStr, endDateStr))
+		where := strings.Join(wheres, " AND ")
+		rows, err := ch.Query(fmt.Sprintf(Query, where, where))
+		if CheckErr(err, c) {
+			raven.CaptureError(err, nil)
+			return
+		}
+		for rows.Next() {
+			err := rows.Scan(&date, &pv, &uv, &clicks)
+			if CheckErr(err, c) {
+				raven.CaptureError(err, nil)
+				return
+			}
+			Response.PV += pv
+			Response.UV += uv
+			Response.Clicks += clicks
+		}
+		if Response.Clicks != 0 && Response.PV != 0 {
+			Response.Ctr = float64(Response.Clicks) / float64(Response.PV)
+		} else {
+			Response.Ctr = 0.0
+		}
+		List = append(List, Response)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		`data`: List,
+	})
+	return
 }

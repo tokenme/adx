@@ -25,15 +25,18 @@ type Adzone struct {
 	MinCPM             float64                 `json:"min_cpm,omitempty"`
 	SuggestCPT         float64                 `json:"suggest_cpt,omitempty"`
 	Settlement         Settlement              `json:"settlement"`
-	Desc               string                  `json:"desc"`
+	Intro              string                  `json:"intro"`
 	Rolling            uint                    `json:"rolling"`
 	OnlineStatus       uint                    `json:"online_status"`
-	Placeholder        *PrivateAuctionCreative `json:"placeholder,omitempty"`
+	Placeholder        *PrivateAuctionCreative `json:"placeholder"`
 	UnverifiedAuctions uint                    `json:"unverified_auctions,omitempty"`
 	UnavailableDays    []time.Time             `json:"unavailable_days,omitempty"`
 	EmbedCode          string                  `json:"embed,omitempty"`
 	InsertedAt         time.Time               `json:"inserted_at"`
 	UpdatedAt          time.Time               `json:"updated_at"`
+	Advantage          string                  `json:"advantage"`
+	Location           string                  `json:"location"`
+	Traffic            string                  `json:"traffic"`
 }
 
 func EncodeAdzoneId(key []byte, id uint64) (string, error) {
