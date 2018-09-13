@@ -14,6 +14,7 @@ import (
 	"github.com/ziutek/mymysql/mysql"
 	"net/http"
 	"strings"
+	"github.com/tokenme/adx/utils/verify253"
 )
 
 type CreateRequest struct {
@@ -63,12 +64,17 @@ func CreateHandler(c *gin.Context) {
 	mobile := strings.Replace(req.Mobile, " ", "", 0)
 	active := 0
 	if mobile != "" {
-		retTwilio, err := twilio.AuthVerification(Config.TwilioToken, mobile, req.CountryCode, req.VerifyCode)
+		ret := twilio.AuthVerificationResponse{}
+		if req.CountryCode != 86 {
+			ret, err = twilio.AuthVerification(Config.TwilioToken, mobile, req.CountryCode, req.VerifyCode)
+		}else{
+			ret,err = verify253.AuthVerification(mobile,req.VerifyCode,req.CountryCode)
+		}
 		if CheckErr(err, c) {
 			raven.CaptureError(err, nil)
 			return
 		}
-		if Check(!retTwilio.Success, retTwilio.Message, c) {
+		if Check(!ret.Success, ret.Message, c) {
 			return
 		}
 		active = 1

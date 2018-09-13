@@ -37,6 +37,12 @@ type Config struct {
 	EnableWeb           bool          `default:"false"`
 	EnableGC            bool          `default:"false"`
 	EnableAdServer      bool          `default:"false"`
+	Zz253               Sms           `required:"true"`
+}
+
+type Sms struct {
+	Account  string `default:"N5692616"`
+	Password string `default:"4mNud0qth"`
 }
 
 type AirdropConfig struct {

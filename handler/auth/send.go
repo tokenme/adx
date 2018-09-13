@@ -7,6 +7,7 @@ import (
 	"github.com/tokenme/adx/utils/twilio"
 	"net/http"
 	"strings"
+	"github.com/tokenme/adx/utils/verify253"
 )
 
 type SendRequest struct {
@@ -20,6 +21,10 @@ func SendHandler(c *gin.Context) {
 		return
 	}
 	mobile := strings.Replace(req.Mobile, " ", "", 0)
+	if req.Country == 86{
+	verify253.AuthSend(mobile,c)
+		return
+		}
 	ret, err := twilio.AuthSend(Config.TwilioToken, mobile, req.Country)
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
