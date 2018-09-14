@@ -39,6 +39,12 @@ type Config struct {
 	EnableDealer         bool          `default:"false"`
 	EnableDepositChecker bool          `default:"false"`
 	EnableAdServer       bool          `default:"false"`
+	Zz253                Sms           `required:"true"`
+}
+
+type Sms struct {
+	Account  string `default:"N5692616"`
+	Password string `default:"4mNud0qth"`
 }
 
 type AirdropConfig struct {
