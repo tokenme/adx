@@ -12,10 +12,9 @@ type Media struct {
 	Title        string    `json:"title,omitempty"`
 	Domain       string    `json:"domain,omitempty"`
 	TopDomain    string    `json:"top_domain,omitempty"`
-	Desc         string    `json:"desc,omitempty"`
+	ImgUrl       string    `json:"imgurl"`
 	Verified     uint      `json:"verified"`
 	OnlineStatus uint      `json:"online_status"`
-	Intro        string    `json:"intro"`
 	Identity     string    `json:"identity,omitempty"`
 	VerifyDNS    string    `json:"verify_dns,omitempty"`
 	VerifyURL    string    `json:"verify_url,omitempty"`
@@ -25,6 +24,7 @@ type Media struct {
 	Verified_at  time.Time `json:"verified_at"`
 	InsertedAt   time.Time `json:"inserted_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+	Adzones      []Adzone  `json:"adzones,omitempty"`
 }
 
 func (this Media) Complete() Media {
