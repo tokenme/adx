@@ -78,7 +78,7 @@ WHERE uw.user_id=%d AND uw.is_main=1`
 		return
 	}
 
-	rows, _, err = db.Query(`SELECT t.address, t.name, t.symbol, t.decimals, t.protocol, a.wallet, a.salt FROM adx.airdrops AS a INNER JOIN adx.tokens AS t ON (t.address=a.token_address) WHERE a.id=%d AND t.protocol="ERC20" AND (a.user_id=%d OR EXISTS (SELECT 1 FROM adx.users WHERE id=%d AND is_admin=1 LIMIT 1)) LIMIT 1`, req.AirdropId, user.Id, user.Id)
+	rows, _, err = db.Query(`SELECT t.address, t.name, t.symbol, t.decimals, t.protocol, a.wallet, a.salt FROM adx.airdrops AS a INNER JOIN adx.tokens AS t ON (t.address=a.token_address) WHERE a.id=%d AND a.wallet_val_t=0 AND t.protocol="ERC20" AND (a.user_id=%d OR EXISTS (SELECT 1 FROM adx.users WHERE id=%d AND is_admin=1 LIMIT 1)) LIMIT 1`, req.AirdropId, user.Id, user.Id)
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
 		return

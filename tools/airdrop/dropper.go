@@ -97,7 +97,7 @@ FROM
 	adx.airdrops AS a
 INNER JOIN adx.tokens AS t ON ( t.address = a.token_address )
 WHERE
-	t.protocol = 'ERC20'
+	t.protocol = 'ERC20' AND a.wallet_val_t = 0
 AND a.balance_status = 0
 AND ((a.approve_tx_status = 2 AND a.dealer_tx_status = 2) OR a.sync_drop=1)
 AND EXISTS ( SELECT

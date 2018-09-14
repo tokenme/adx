@@ -34,7 +34,7 @@ func SubmitHandler(c *gin.Context) {
 	}
 
 	db := Service.Db
-	rows, _, err := db.Query(`SELECT t.protocol, a.require_email FROM adx.tokens AS t INNER JOIN adx.airdrops AS a ON (a.token_address=t.address) WHERE a.id=%d LIMIT 1`, proto.AirdropId)
+	rows, _, err := db.Query(`SELECT t.protocol, a.require_email, a.wallet_val_t, a.wallet_rule FROM adx.tokens AS t INNER JOIN adx.airdrops AS a ON (a.token_address=t.address) WHERE a.id=%d LIMIT 1`, proto.AirdropId)
 	if CheckErr(err, c) {
 		log.Error(err.Error())
 		return
@@ -44,12 +44,21 @@ func SubmitHandler(c *gin.Context) {
 	}
 	protocol := rows[0].Str(0)
 	requireEmail := rows[0].Uint(1)
+	walletValType := uint8(rows[0].Uint(2))
+	walletRule := strings.TrimSpace(rows[0].Str(3))
 	emailRegex := regexp.MustCompile(Email)
 	if Check(requireEmail > 0 && (req.Email == "" || !emailRegex.MatchString(req.Email)), "invalid email address", c) {
 		return
 	}
-	if Check(protocol == "ERC20" && (len(req.Wallet) != 42 || !strings.HasPrefix(req.Wallet, "0x")), "invalid wallet", c) {
-		return
+	if walletValType == 0 {
+		if Check(protocol == "ERC20" && (len(req.Wallet) != 42 || !strings.HasPrefix(req.Wallet, "0x")), "invalid wallet", c) {
+			return
+		}
+	}
+	if walletRule != "" {
+		if matched, err := regexp.Match(walletRule, []byte(req.Wallet)); CheckErr(err, c) || Check(!matched, "invalid wallet", c) {
+			return
+		}
 	}
 	rows, _, err = db.Query("SELECT id, (SELECT COUNT(1) FROM adx.airdrop_submissions AS asub WHERE asub.referrer = '%s' AND asub.airdrop_id = %d) AS submissions FROM adx.codes WHERE wallet='%s' AND airdrop_id=%d LIMIT 1", db.Escape(req.Wallet), proto.AirdropId, db.Escape(req.Wallet), proto.AirdropId)
 	if CheckErr(err, c) {
@@ -64,7 +73,7 @@ func SubmitHandler(c *gin.Context) {
 		}
 		code := token.Token(rows[0].Uint64(0))
 		promotion.VerifyCode = code
-        promotion.Submissions = rows[0].Uint64(1)
+		promotion.Submissions = rows[0].Uint64(1)
 
 		c.JSON(http.StatusOK, promotion)
 		return

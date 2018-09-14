@@ -74,6 +74,7 @@ AND a.dealer_tx_status < 2
 AND a.drop_date <= DATE( NOW())
 AND a.sync_drop = 0
 AND a.no_drop = 0
+AND a.wallet_val_t = 0
 AND EXISTS ( SELECT
 	1
 FROM

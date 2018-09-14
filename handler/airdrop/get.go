@@ -19,7 +19,7 @@ func GetHandler(c *gin.Context) {
 		return
 	}
 	db := Service.Db
-	rows, _, err := db.Query(`SELECT a.id, a.user_id, a.title, a.wallet, a.salt, t.address, t.name, t.symbol, t.decimals, t.protocol, a.gas_price, a.gas_limit, a.commission_fee, a.give_out, a.bonus, a.status, a.balance_status, a.start_date, a.end_date, a.drop_date, a.telegram_group, a.require_email, a.max_submissions, a.no_drop, a.reply_msg, a.inserted, a.updated FROM adx.airdrops AS a INNER JOIN adx.tokens AS t ON (t.address=a.token_address) WHERE a.id=%d`, airdropId)
+	rows, _, err := db.Query(`SELECT a.id, a.user_id, a.title, a.wallet, a.salt, t.address, t.name, t.symbol, t.decimals, t.protocol, a.gas_price, a.gas_limit, a.commission_fee, a.give_out, a.bonus, a.status, a.balance_status, a.start_date, a.end_date, a.drop_date, a.telegram_group, a.require_email, a.max_submissions, a.no_drop, a.reply_msg, a.inserted, a.updated, a.wallet_val_t, a.wallet_rule FROM adx.airdrops AS a INNER JOIN adx.tokens AS t ON (t.address=a.token_address) WHERE a.id=%d`, airdropId)
 	if CheckErr(err, c) {
 		return
 	}
@@ -31,11 +31,11 @@ func GetHandler(c *gin.Context) {
 		privateKey, _ := utils.AddressDecrypt(wallet, salt, Config.TokenSalt)
 		publicKey, _ := eth.AddressFromHexPrivateKey(privateKey)
 		airdrop = &common.Airdrop{
-			Id:             row.Uint64(0),
-			User:           common.User{Id: row.Uint64(1)},
-			Title:          row.Str(2),
-			Wallet:         publicKey,
-			WalletPrivKey:  privateKey,
+			Id:            row.Uint64(0),
+			User:          common.User{Id: row.Uint64(1)},
+			Title:         row.Str(2),
+			Wallet:        publicKey,
+			WalletPrivKey: privateKey,
 			Token: common.Token{
 				Address:  row.Str(5),
 				Name:     row.Str(6),
@@ -61,6 +61,8 @@ func GetHandler(c *gin.Context) {
 			ReplyMsg:       row.Str(24),
 			Inserted:       row.ForceLocaltime(25),
 			Updated:        row.ForceLocaltime(26),
+			WalletValType:  uint8(row.Uint(27)),
+			WalletRule:     row.Str(28),
 		}
 		if airdrop.Token.Protocol == "ERC20" {
 			airdrop.CheckBalance(Service.Geth, c)

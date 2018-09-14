@@ -43,7 +43,9 @@ func GetHandler(c *gin.Context) {
 	a.end_date ,
 	a.telegram_group ,
 	c.name ,
-	az.name
+	az.name,
+	a.wallet_val_t,
+	a.wallet_rule
 FROM
 	adx.promotions AS p
 INNER JOIN adx.airdrops AS a ON ( a.id = p.airdrop_id )
@@ -69,6 +71,8 @@ AND p.user_id =%d`
 		Id:            row.Uint64(3),
 		Title:         row.Str(4),
 		Wallet:        publicKey,
+		WalletValType: uint8(row.Uint64(21)),
+		WalletRule:    row.Str(22),
 		WalletPrivKey: privateKey,
 		Token: common.Token{
 			Address:  row.Str(7),

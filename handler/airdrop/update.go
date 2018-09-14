@@ -13,14 +13,14 @@ import (
 )
 
 type UpdateRequest struct {
-	Id       	   uint64 `form:"id" json:"id" binding:"required"`
-	GasPrice 	   uint64 `form:"gas_price" json:"gas_price"`
-	GasLimit 	   uint64 `form:"gas_limit" json:"gas_limit"`
-	GiveOut  	   uint64 `form:"give_out" json:"give_out"`
-	DropDate 	   int64  `form:"drop_date" json:"drop_date"`
+	Id             uint64 `form:"id" json:"id" binding:"required"`
+	GasPrice       uint64 `form:"gas_price" json:"gas_price"`
+	GasLimit       uint64 `form:"gas_limit" json:"gas_limit"`
+	GiveOut        uint64 `form:"give_out" json:"give_out"`
+	DropDate       int64  `form:"drop_date" json:"drop_date"`
 	MaxSubmissions int    `form:"max_submissions" json:"max_submissions"`
-	ReplyMsg 	   string `form:"reply_msg" json:"reply_msg"`
-	Status   	   uint   `form:"status" json:"status"`
+	ReplyMsg       string `form:"reply_msg" json:"reply_msg"`
+	Status         uint   `form:"status" json:"status"`
 }
 
 func UpdateHandler(c *gin.Context) {

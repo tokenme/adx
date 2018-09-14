@@ -30,6 +30,11 @@ const (
 	AirdropBalanceStatusEmpty   AirdropBalanceStatus = 3
 )
 
+const (
+	AirdropWalletNormal uint8 = 0 // 正常钱包
+	AirdropWalletHuobi  uint8 = 1 // 火币ID
+)
+
 type Airdrop struct {
 	Id               uint64               `json:"id"`
 	User             User                 `json:"user"`
@@ -37,6 +42,8 @@ type Airdrop struct {
 	Token            Token                `json:"token"`
 	WalletPrivKey    string               `json:"-"`
 	Wallet           string               `json:"wallet"`
+	WalletValType    uint8                `json:"wallet_val_t"`
+	WalletRule       string               `json:"wallet_rule"`
 	GasPrice         uint64               `json:"gas_price"`
 	GasLimit         uint64               `json:"gas_limit"`
 	CommissionFee    uint64               `json:"commission_fee"`
