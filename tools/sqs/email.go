@@ -13,11 +13,12 @@ import (
 )
 
 type EmailMessage struct {
-	Type         MsgType `codec:"type"`
-	Email        string  `codec:"email"`
-	Code         string  `codec:"code"`
-	IsPublisher  uint    `code:"is_publisher"`
-	IsAdvertiser uint    `code:"is_advertiser"`
+	Type               MsgType `codec:"type"`
+	Email              string  `codec:"email"`
+	Code               string  `codec:"code"`
+	IsPublisher        uint    `code:"is_publisher"`
+	IsAdvertiser       uint    `code:"is_advertiser"`
+	IsAirdropPublisher uint    `code:"is_airdrop_publisher"`
 }
 
 type EmailQueue struct {
@@ -51,11 +52,11 @@ func (this *EmailQueue) Stop() {
 }
 
 func (this *EmailQueue) NewRegister(user common.User) error {
-	return this.Queue.Call(EmailMessage{Type: RegisterMsg, Email: user.Email, Code: user.ActivationCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser})
+	return this.Queue.Call(EmailMessage{Type: RegisterMsg, Email: user.Email, Code: user.ActivationCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser, IsAirdropPublisher: user.IsAirdropPublisher})
 }
 
 func (this *EmailQueue) NewResetPwd(user common.User) error {
-	return this.Queue.Call(EmailMessage{Type: ResetPwdMsg, Email: user.Email, Code: user.ResetPwdCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser})
+	return this.Queue.Call(EmailMessage{Type: ResetPwdMsg, Email: user.Email, Code: user.ResetPwdCode, IsPublisher: user.IsPublisher, IsAdvertiser: user.IsAdvertiser, IsAirdropPublisher: user.IsAirdropPublisher})
 }
 
 func (this *EmailQueue) Handler(msg EmailMessage) error {

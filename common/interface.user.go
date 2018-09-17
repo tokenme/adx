@@ -13,21 +13,22 @@ import (
 )
 
 type User struct {
-	Id             uint64        `json:"id,omitempty"`
-	Mobile         string        `json:"mobile,omitempty"`
-	CountryCode    uint          `json:"country_code,omitempty"`
-	Email          string        `json:"email,omitempty"`
-	ActivationCode string        `json:"-"`
-	ResetPwdCode   string        `json:"-"`
-	Telegram       *TelegramUser `json:"telegram,omitempty"`
-	ShowName       string        `json:"showname,omitempty"`
-	Avatar         string        `json:"avatar,omitempty"`
-	Salt           string        `json:"-"`
-	Password       string        `json:"-"`
-	Wallet         string        `json:"wallet,omitempty"`
-	IsAdmin        uint          `json:"is_admin"`
-	IsPublisher    uint          `json:"is_publisher,omitempty"`
-	IsAdvertiser   uint          `json:"is_advertiser,omitempty"`
+	Id                 uint64        `json:"id,omitempty"`
+	Mobile             string        `json:"mobile,omitempty"`
+	CountryCode        uint          `json:"country_code,omitempty"`
+	Email              string        `json:"email,omitempty"`
+	ActivationCode     string        `json:"-"`
+	ResetPwdCode       string        `json:"-"`
+	Telegram           *TelegramUser `json:"telegram,omitempty"`
+	ShowName           string        `json:"showname,omitempty"`
+	Avatar             string        `json:"avatar,omitempty"`
+	Salt               string        `json:"-"`
+	Password           string        `json:"-"`
+	Wallet             string        `json:"wallet,omitempty"`
+	IsAdmin            uint          `json:"is_admin"`
+	IsPublisher        uint          `json:"is_publisher,omitempty"`
+	IsAirdropPublisher uint          `json:"is_airdrop_publisher,omitempty"`
+	IsAdvertiser       uint          `json:"is_advertiser,omitempty"`
 }
 
 type TelegramUser struct {
@@ -97,7 +98,7 @@ func (this User) Balance(ctx context.Context, service *Service, config Config) (
 		return nil, err
 	}
 	balance = new(big.Int).Add(balance, deposit)
-	if this.IsAdvertiser == 1 {
+	if this.IsAdvertiser == 1 || this.IsAirdropPublisher == 1 {
 		query := `SELECT
 			user_id ,
 			SUM( price ) AS cost

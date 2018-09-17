@@ -11,9 +11,10 @@ import (
 )
 
 type SendResetPasswordEmailRequest struct {
-	Email        string `form:"email" json:"email" binding:"required"`
-	IsPublisher  uint   `form:"is_publisher" json:"is_publisher"`
-	IsAdvertiser uint   `form:"is_advertiser" json:"is_advertiser"`
+	Email              string `form:"email" json:"email" binding:"required"`
+	IsPublisher        uint   `form:"is_publisher" json:"is_publisher"`
+	IsAdvertiser       uint   `form:"is_advertiser" json:"is_advertiser"`
+	IsAirdropPublisher uint   `form:"is_airdrop_publisher" json:"is_airdrop_publisher"`
 }
 
 func SendResetPasswordEmailHandler(c *gin.Context) {
@@ -21,7 +22,7 @@ func SendResetPasswordEmailHandler(c *gin.Context) {
 	if CheckErr(c.Bind(&req), c) {
 		return
 	}
-	if Check(req.IsPublisher != 1 && req.IsAdvertiser != 1, "missing account type", c) {
+	if Check(req.IsPublisher != 1 && req.IsAdvertiser != 1 && req.IsAirdropPublisher != 1, "missing account type", c) {
 		return
 	}
 	token, err := uuid.NewV4()
@@ -36,10 +37,11 @@ func SendResetPasswordEmailHandler(c *gin.Context) {
 		return
 	}
 	user := common.User{
-		Email:        req.Email,
-		ResetPwdCode: code,
-		IsPublisher:  req.IsPublisher,
-		IsAdvertiser: req.IsAdvertiser,
+		Email:              req.Email,
+		ResetPwdCode:       code,
+		IsPublisher:        req.IsPublisher,
+		IsAdvertiser:       req.IsAdvertiser,
+		IsAirdropPublisher: req.IsAirdropPublisher,
 	}
 	err = EmailQueue.NewResetPwd(user)
 	if CheckErr(err, c) {
