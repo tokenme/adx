@@ -27,6 +27,7 @@ func NewRouter(uiPath string, templatePath string) *gin.Engine {
 	adRouter(r)
 	statsRouter(r)
 	airdropRouter(r)
+	gasRouter(r)
 	tokenRouter(r)
 	geoIPRouter(r)
 	return r

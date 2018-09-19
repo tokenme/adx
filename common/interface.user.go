@@ -26,9 +26,9 @@ type User struct {
 	Password           string        `json:"-"`
 	Wallet             string        `json:"wallet,omitempty"`
 	IsAdmin            uint          `json:"is_admin"`
-	IsPublisher        uint          `json:"is_publisher,omitempty"`
-	IsAirdropPublisher uint          `json:"is_airdrop_publisher,omitempty"`
-	IsAdvertiser       uint          `json:"is_advertiser,omitempty"`
+	IsPublisher        uint          `json:"is_publisher"`
+	IsAirdropPublisher uint          `json:"is_airdrop_publisher"`
+	IsAdvertiser       uint          `json:"is_advertiser"`
 }
 
 type TelegramUser struct {
