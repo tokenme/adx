@@ -40,6 +40,7 @@ func main() {
 	flag.StringVar(&configFlag.LogPath, "log", "/tmp/tokenmama-adx", "set log file path without filename")
 	flag.BoolVar(&configFlag.Debug, "debug", false, "set debug mode")
 	flag.BoolVar(&configFlag.EnableWeb, "web", false, "enable http web server")
+	flag.BoolVar(&configFlag.EnableTelegramBot, "telegrambot", false, "enable telegram bot")
 	flag.BoolVar(&configFlag.EnableAdServer, "ad", false, "enable ad server")
 	flag.BoolVar(&configFlag.EnableDealer, "dealer", false, "enable dealer")
 	flag.BoolVar(&configFlag.EnableGC, "gc", false, "enable gc")
@@ -59,7 +60,9 @@ func main() {
 	if configFlag.EnableWeb {
 		config.EnableWeb = configFlag.EnableWeb
 	}
-
+	if configFlag.EnableTelegramBot {
+		config.EnableTelegramBot = configFlag.EnableTelegramBot
+	}
 	if configFlag.EnableGC {
 		config.EnableGC = configFlag.EnableGC
 	}

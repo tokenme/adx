@@ -39,3 +39,13 @@ func (this Token) GetLogoAddress(cdn string) string {
 	}
 	return fmt.Sprintf("%simg/token/%s.png", cdn, addr)
 }
+
+type TokenMarket struct {
+	Id                string  `json:"id"`
+	PriceUSD          float64 `json:"price_usd"`
+	TotalSupply       float64 `json:"total_supply"`
+	CirculatingSupply float64 `json:"available_supply"`
+	MarketCapUSD      float64 `json:"market_cap_usd"`
+	Volume24H         float64 `json:"24h_volume_usd"`
+	PercentChange24H  float64 `json:"percent_change_24h"`
+}

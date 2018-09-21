@@ -33,7 +33,7 @@ func UpdateHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsPublisher == 0 && user.IsAdmin == 0, "invalid permission", c) {
+	if Check(user.IsAirdropPublisher == 0 && user.IsAdmin == 0, "invalid permission", c) {
 		return
 	}
 	db := Service.Db

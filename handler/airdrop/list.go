@@ -25,7 +25,7 @@ func ListHandler(c *gin.Context) {
 		where  string
 		wheres []string
 	)
-	if user.IsPublisher != 0 || user.IsAdmin != 0 {
+	if user.IsAirdropPublisher != 0 || user.IsAdmin != 0 {
 		var subWhere []string
 		if user.IsAdmin == 0 {
 			subWhere = append(subWhere, fmt.Sprintf("a.user_id=%d", user.Id))
@@ -45,8 +45,9 @@ func ListHandler(c *gin.Context) {
 		now := time.Now().Format("2006-01-02")
 		wheres = append(wheres, fmt.Sprintf("a.status=1 AND a.balance_status=0 AND a.start_date<='%s' AND end_date >='%s'", now, now))
 	}
+	where = "WHERE is_hidden = 0 "
 	if len(wheres) > 0 {
-		where = fmt.Sprintf("WHERE %s", strings.Join(wheres, " OR "))
+		where += fmt.Sprintf(" AND (%s) ", strings.Join(wheres, " OR "))
 	}
 	page, _ := Uint64Value(c.Query("page"), 1)
 	if page == 0 {

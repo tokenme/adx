@@ -8,4 +8,6 @@ import (
 func tokenRouter(r *gin.Engine) {
 	tokenGroup := r.Group("/token")
 	tokenGroup.GET("/get", token.GetHandler)
+	tokenGroup.GET("/graph", token.GraphHandler)
+	tokenGroup.GET("/market", token.MarketHandler)
 }

@@ -29,7 +29,7 @@ func AddHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 	db := Service.Db
-	rows, _, err := db.Query(`SELECT channel_id FROM adx.adzones WHERE id=%d AND user_id=%d LIMIT 1`, req.AdzoneId, user.Id)
+	rows, _, err := db.Query(`SELECT channel_id FROM adx.airdrop_adzones WHERE id=%d AND user_id=%d LIMIT 1`, req.AdzoneId, user.Id)
 	if CheckErr(err, c) {
 		return
 	}

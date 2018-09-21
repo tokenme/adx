@@ -39,7 +39,7 @@ func WithdrawHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsPublisher == 0 && user.IsAdmin == 0, "invalid permission", c) {
+	if Check(user.IsAirdropPublisher == 0 && user.IsAdmin == 0, "invalid permission", c) {
 		return
 	}
 	db := Service.Db
@@ -50,7 +50,7 @@ func WithdrawHandler(c *gin.Context) {
 	u.passwd,
 	u.salt
 FROM adx.user_wallets AS uw
-INNER JOIN tokenme.users AS u ON (u.id=uw.user_id)
+INNER JOIN adx.users AS u ON (u.id=uw.user_id)
 WHERE uw.user_id=%d AND uw.is_main=1`
 	rows, _, err := db.Query(query, user.Id)
 	if CheckErr(err, c) {

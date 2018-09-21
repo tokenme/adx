@@ -32,4 +32,6 @@ func promotionRouter(r *gin.Engine) {
 		key := c.Param("key")
 		c.Redirect(http.StatusFound, fmt.Sprintf("/promo.html#/%s", key))
 	})
+
+	r.GET("/promotion/topn", promotion.TopNHandler)
 }

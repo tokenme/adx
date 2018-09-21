@@ -17,18 +17,19 @@ type AirdropSubmission struct {
 }
 
 type Promotion struct {
-	Id          uint64      `json:"id"`
-	UserId      uint64      `json:"user_id"`
-	Airdrop     *Airdrop    `json:"airdrop"`
-	AdzoneId    uint64      `json:"adzone_id"`
-	ChannelId   uint64      `json:"channel_id"`
-	AdzoneName  string      `json:"adzone_name"`
-	ChannelName string      `json:"channel_name"`
-	Link        string      `json:"link"`
-	Key         string      `json:"key"`
-	Submissions uint64      `json:"submissions"`
-	VerifyCode  token.Token `json:"verify_code,omitempty"`
-	Inserted    time.Time   `json:"inserted"`
+	Id              uint64      `json:"id"`
+	UserId          uint64      `json:"user_id"`
+	Airdrop         *Airdrop    `json:"airdrop"`
+	AdzoneId        uint64      `json:"adzone_id"`
+	ChannelId       uint64      `json:"channel_id"`
+	AdzoneName      string      `json:"adzone_name"`
+	ChannelName     string      `json:"channel_name"`
+	Link            string      `json:"link"`
+	Key             string      `json:"key"`
+	SelfSubmissions uint64      `json:"self_submissions"`
+	Submissions     uint64      `json:"submissions"`
+	VerifyCode      token.Token `json:"verify_code,omitempty"`
+	Inserted        time.Time   `json:"inserted"`
 }
 
 type PromotionStats struct {

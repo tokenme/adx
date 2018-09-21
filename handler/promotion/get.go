@@ -43,15 +43,15 @@ func GetHandler(c *gin.Context) {
 	a.end_date ,
 	a.telegram_group ,
 	c.name ,
-	az.name,
-	a.wallet_val_t,
+	az.name ,
+	a.wallet_val_t ,
 	a.wallet_rule
 FROM
 	adx.promotions AS p
 INNER JOIN adx.airdrops AS a ON ( a.id = p.airdrop_id )
 INNER JOIN adx.tokens AS t ON ( t.address = a.token_address )
 INNER JOIN adx.channels AS c ON ( c.id = p.channel_id )
-INNER JOIN adx.adzones AS az ON ( az.id = p.adzone_id )
+INNER JOIN adx.airdrop_adzones AS az ON ( az.id = p.adzone_id )
 WHERE
 	p.id = %d
 AND p.user_id =%d`

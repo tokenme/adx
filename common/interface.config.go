@@ -35,6 +35,7 @@ type Config struct {
 	AdJSVer              string        `required:"true"`
 	Debug                bool          `default:"false"`
 	EnableWeb            bool          `default:"false"`
+	EnableTelegramBot    bool          `default:"false"`
 	EnableGC             bool          `default:"false"`
 	EnableDealer         bool          `default:"false"`
 	EnableDepositChecker bool          `default:"false"`

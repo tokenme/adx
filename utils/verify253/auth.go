@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tokenme/adx/tools/zz253"
-	"math/rand"
-	"time"
-	"net/http"
 	"github.com/tokenme/adx/utils/twilio"
 	"log"
+	"math/rand"
+	"net/http"
+	"time"
 )
 
-func AuthSend(telephone string, c *gin.Context)  {
+func AuthSend(telephone string, c *gin.Context) {
 	db := Service.Db
 	row, _, err := db.Query(fmt.Sprintf(`SELECT id FROM adx.telephone_codes WHERE telephone = '%s' AND type = 5 AND created >= '%s' LIMIT 1`, telephone, time.Now().Add(-1*time.Minute).Format("2006-01-02 15:04:05")))
 	if Check(row != nil || err != nil, "请稍后1分钟后重试", c) {
@@ -29,10 +29,11 @@ func AuthSend(telephone string, c *gin.Context)  {
 	Content := fmt.Sprintf("【TOKENMAMA】您的注册验证码是: %s", code)
 	apiReq.Content = Content
 	apiReq.BaseRequest = zz253.BaseRequest{
-		Account:Config.Zz253.Account,
-		Password:Config.Zz253.Password,
+		Account:  Config.Zz253.Account,
+		Password: Config.Zz253.Password,
 	}
-	log.Println(apiReq.BaseRequest)
+	log.Println(Json(Config.Zz253))
+	log.Println(Json(apiReq))
 	_, err = zz253.Send(&apiReq)
 	if CheckErr(err, c) {
 		return
@@ -47,18 +48,17 @@ func AuthSend(telephone string, c *gin.Context)  {
 	c.JSON(http.StatusOK, APIResponse{Msg: "ok"})
 }
 
-func AuthVerification(Mobile string,Code string,Country uint) (twilio.AuthVerificationResponse,error) {
+func AuthVerification(Mobile string, Code string, Country uint) (twilio.AuthVerificationResponse, error) {
 	db := Service.Db
-	Res:=twilio.AuthVerificationResponse{Success:true,Message:"OK"}
+	Res := twilio.AuthVerificationResponse{Success: true, Message: "OK"}
 	row, _, err := db.Query(`SELECT * FROM adx.telephone_codes WHERE telephone = '%s' AND code = '%s'`, Mobile, Code)
-	if err !=nil || row == nil{
+	if err != nil || row == nil {
 		Res.Success = false
 		Res.Message = "验证码错误,请重新输入"
-		return  Res,err
+		return Res, err
 	}
 
-	return Res,nil
-
+	return Res, nil
 
 }
 
@@ -71,6 +71,5 @@ func Shuffle(s string) (ret string) {
 		buffer.WriteString(string(runes[randIndex]))
 	}
 	return buffer.String()
-
 
 }
