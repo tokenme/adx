@@ -16,7 +16,7 @@ import (
 type AddRequest struct {
 	Title  string `form:"title" json:"title" binding:"required"`
 	Domain string `form:"domain" json:"domain" binding:"required"`
-	ImgUrl string `form:"placeholder_img" json:"placeholder_img" binding:"required"`
+	ImgUrl string `form:"placeholder_img" json:"placeholder_img" `
 }
 
 func AddHandler(c *gin.Context) {

@@ -14,7 +14,6 @@ import (
 	"github.com/ziutek/mymysql/mysql"
 	"net/http"
 	"strings"
-	"github.com/tokenme/adx/utils/verify253"
 )
 
 type CreateRequest struct {
@@ -67,8 +66,8 @@ func CreateHandler(c *gin.Context) {
 		ret := twilio.AuthVerificationResponse{}
 		if req.CountryCode != 86 {
 			ret, err = twilio.AuthVerification(Config.TwilioToken, mobile, req.CountryCode, req.VerifyCode)
-		}else{
-			ret,err = verify253.AuthVerification(mobile,req.VerifyCode,req.CountryCode)
+		} else {
+			ret, err = ChinaVerify(mobile, req.VerifyCode, req.CountryCode)
 		}
 		if CheckErr(err, c) {
 			raven.CaptureError(err, nil)
@@ -138,4 +137,18 @@ func CreateHandler(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, APIResponse{Msg: "ok"})
+}
+
+func ChinaVerify(Mobile string, Code string, Country uint) (twilio.AuthVerificationResponse, error) {
+	db := Service.Db
+	Res := twilio.AuthVerificationResponse{Success: true, Message: "OK"}
+	row, _, err := db.Query(`SELECT * FROM adx.telephone_codes WHERE telephone = '%s' AND code = '%s'`, Mobile, Code)
+	if err != nil || row == nil {
+		Res.Success = false
+		Res.Message = "验证码错误,请重新输入"
+		return Res, err
+	}
+
+	return Res, nil
+
 }
