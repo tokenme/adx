@@ -26,7 +26,7 @@ func ListHandler(c *gin.Context) {
 	}
 	var medias []common.Media
 	for _, row := range rows {
-		 placeholder := common.PrivateAuctionCreative{}
+		placeholder := common.PrivateAuctionCreative{}
 		if row.Str(3) != "" {
 			placeholder.Img = row.Str(3)
 		}

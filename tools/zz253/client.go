@@ -41,7 +41,6 @@ func NewClient(account, password string, isTest bool) (c *Client) {
 
 func (c *Client) Execute(req *Request) (string, error) {
 
-
 	sysParams := make(map[string]interface{})
 	sysParams["account"] = c.Account
 	sysParams["password"] = c.Password

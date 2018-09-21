@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	maxPartSize = int64( 5* 1024 * 1024)
+	maxPartSize = int64(5 * 1024 * 1024)
 	maxRetries  = 3
 )
 

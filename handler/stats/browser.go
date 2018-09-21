@@ -68,7 +68,7 @@ func BrowserHandler(c *gin.Context) {
 	}
 	if user.IsPublisher == 1 {
 		wheres = append(wheres, fmt.Sprintf("PublisherId=%d", user.Id))
-	} else if user.IsAdvertiser == 1 || user.IsAirdropPublisher == 1{
+	} else if user.IsAdvertiser == 1 || user.IsAirdropPublisher == 1 {
 		wheres = append(wheres, fmt.Sprintf("AdvertiserId=%d", user.Id))
 	}
 

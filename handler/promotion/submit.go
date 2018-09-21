@@ -60,7 +60,19 @@ func SubmitHandler(c *gin.Context) {
 			return
 		}
 	}
-	rows, _, err = db.Query("SELECT id, (SELECT COUNT(1) FROM adx.airdrop_submissions AS asub WHERE asub.referrer = '%s' AND asub.airdrop_id = %d) AS submissions FROM adx.codes WHERE wallet='%s' AND airdrop_id=%d LIMIT 1", db.Escape(req.Wallet), proto.AirdropId, db.Escape(req.Wallet), proto.AirdropId)
+	rows, _, err = db.Query(`SELECT id, 
+	(SELECT 
+			COUNT(1) 
+		FROM adx.airdrop_submissions AS asub 
+		WHERE asub.wallet = '%s' AND asub.airdrop_id = %d
+	) AS sel_submissions, 
+   (SELECT 
+			COUNT(1) 
+		FROM adx.airdrop_submissions AS asub2
+		WHERE asub2.referrer = '%s' AND asub2.airdrop_id = %d
+	) AS submissions
+FROM adx.codes 
+WHERE wallet='%s' AND airdrop_id=%d LIMIT 1`, db.Escape(req.Wallet), proto.AirdropId, db.Escape(req.Wallet), proto.AirdropId, db.Escape(req.Wallet), proto.AirdropId)
 	if CheckErr(err, c) {
 		log.Error(err.Error())
 		return
@@ -73,7 +85,8 @@ func SubmitHandler(c *gin.Context) {
 		}
 		code := token.Token(rows[0].Uint64(0))
 		promotion.VerifyCode = code
-		promotion.Submissions = rows[0].Uint64(1)
+		promotion.SelfSubmissions = rows[0].Uint64(1)
+		promotion.Submissions = rows[0].Uint64(2)
 
 		c.JSON(http.StatusOK, promotion)
 		return
