@@ -8,7 +8,6 @@ import (
 	"github.com/tokenme/adx/utils/verify253"
 	"net/http"
 	"strings"
-	"fmt"
 )
 
 type SendRequest struct {
@@ -21,7 +20,7 @@ func SendHandler(c *gin.Context) {
 	if CheckErr(c.Bind(&req), c) {
 		return
 	}
-	fmt.Printf("req: %s\n", Json(req))
+	//fmt.Printf("req: %s\n", Json(req))
 	mobile := strings.Replace(req.Mobile, " ", "", 0)
 	if req.Country == 86 {
 		verify253.AuthSend(mobile, c)

@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tokenme/adx/tools/zz253"
 	"github.com/tokenme/adx/utils/twilio"
-	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -32,8 +31,8 @@ func AuthSend(telephone string, c *gin.Context) {
 		Account:  Config.Zz253.Account,
 		Password: Config.Zz253.Password,
 	}
-	log.Println(Json(Config.Zz253))
-	log.Println(Json(apiReq))
+	//log.Println(Json(Config.Zz253))
+	//log.Println(Json(apiReq))
 	_, err = zz253.Send(&apiReq)
 	if CheckErr(err, c) {
 		return
