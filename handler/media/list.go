@@ -15,7 +15,7 @@ func ListHandler(c *gin.Context) {
 	}
 	user := userContext.(common.User)
 
-	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1 && user.IsAdmin != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1 && user.IsAirdropPublisher != 1 && user.IsAdmin != 1, "unauthorized", c) {
 		return
 	}
 	db := Service.Db
@@ -26,7 +26,7 @@ func ListHandler(c *gin.Context) {
 	}
 	var medias []common.Media
 	for _, row := range rows {
-		 placeholder := common.PrivateAuctionCreative{}
+		placeholder := common.PrivateAuctionCreative{}
 		if row.Str(3) != "" {
 			placeholder.Img = row.Str(3)
 		}

@@ -23,7 +23,7 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 	user := userContext.(common.User)
-	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1, "You don't have permission to access", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1 && user.IsAirdropPublisher != 1, "You don't have permission to access", c) {
 		return
 	}
 	db := Service.Db

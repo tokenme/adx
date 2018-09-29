@@ -88,4 +88,12 @@ Port = 587
 User = "apikey"
 Passwd = "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"
 
+[Mail]
+Server = "smtp.sendgrid.net"
+Port = 587
+User = "apikey"
+Passwd = "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"
 
+[Zz253]
+Account = "N5692616"
+Password = "4mNud0qth"

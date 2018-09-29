@@ -34,12 +34,16 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 			where = fmt.Sprintf("email='%s' AND (is_publisher=1 OR is_admin=1)", db.Escape(loginInfo.Email))
 		} else if loginInfo.IsAdvertiser == 1 {
 			where = fmt.Sprintf("email='%s' AND is_advertiser=1", db.Escape(loginInfo.Email))
+		} else if loginInfo.IsAirdropPublisher == 1 {
+			where = fmt.Sprintf("email='%s' AND (is_airdrop_publisher=1 OR is_admin=1)", db.Escape(loginInfo.Email))
 		}
 	} else if loginInfo.Mobile != "" && loginInfo.Password != "" {
 		if loginInfo.IsPublisher == 1 {
 			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND (is_publisher=1 OR is_admin=1)", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
 		} else if loginInfo.IsAdvertiser == 1 {
 			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND is_advertiser=1", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
+		} else if loginInfo.IsAirdropPublisher == 1 {
+			where = fmt.Sprintf("country_code=%d AND mobile='%s' AND (is_airdrop_publisher=1 OR is_admin=1)", loginInfo.CountryCode, db.Escape(loginInfo.Mobile))
 		}
 	}
 	if where == "" {
@@ -60,7 +64,8 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 			u.telegram_lastname,
 			u.telegram_avatar,
 			uw.salt AS uw_salt,
-			uw.wallet
+			uw.wallet,
+			u.is_airdrop_publisher
             FROM adx.users AS u
             INNER JOIN adx.user_wallets AS uw ON (uw.user_id = u.id AND uw.is_main = 1 AND uw.token_type='ETH')
             WHERE %s
@@ -72,14 +77,15 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 	}
 	row := rows[0]
 	user := common.User{
-		Id:          row.Uint64(res.Map("id")),
-		CountryCode: row.Uint(res.Map("country_code")),
-		Mobile:      row.Str(res.Map("mobile")),
-		Email:       row.Str(res.Map("email")),
-		Salt:        row.Str(res.Map("salt")),
-		Password:    row.Str(res.Map("passwd")),
-		IsAdmin:     row.Uint(res.Map("is_admin")),
-		IsPublisher: row.Uint(res.Map("is_publisher")),
+		Id:                 row.Uint64(res.Map("id")),
+		CountryCode:        row.Uint(res.Map("country_code")),
+		Mobile:             row.Str(res.Map("mobile")),
+		Email:              row.Str(res.Map("email")),
+		Salt:               row.Str(res.Map("salt")),
+		Password:           row.Str(res.Map("passwd")),
+		IsAdmin:            row.Uint(res.Map("is_admin")),
+		IsPublisher:        row.Uint(res.Map("is_publisher")),
+		IsAirdropPublisher: row.Uint(res.Map("is_airdrop_publisher")),
 	}
 	telegramId := row.Int64(res.Map("telegram_id"))
 	if telegramId > 0 {
@@ -109,6 +115,8 @@ var AuthenticatorFunc = func(loginInfo jwt.Login, c *gin.Context) (string, bool)
 		user.IsAdvertiser = 1
 	} else if loginInfo.IsAdmin == 1 {
 		user.IsAdmin = 1
+	} else if loginInfo.IsAirdropPublisher == 1 {
+		user.IsAirdropPublisher = 1
 	}
 	user.ShowName = user.GetShowName()
 	user.Avatar = user.GetAvatar(Config.CDNUrl)
@@ -135,6 +143,8 @@ var AuthorizatorFunc = func(data string, c *gin.Context) bool {
 		query = fmt.Sprintf("%s AND (is_publisher=1 OR is_admin=1) LIMIT 1", query)
 	} else if user.IsAdvertiser == 1 {
 		query = fmt.Sprintf("%s AND is_advertiser=1 LIMIT 1", query)
+	} else if user.IsAirdropPublisher == 1 {
+		query = fmt.Sprintf("%s AND is_airdrop_publisher=1 LIMIT 1", query)
 	}
 	rows, _, err := db.Query(query, user.Id)
 	if err != nil || len(rows) == 0 {

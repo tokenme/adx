@@ -5,9 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 	. "github.com/tokenme/adx/handler"
 	"github.com/tokenme/adx/utils/twilio"
+	"github.com/tokenme/adx/utils/verify253"
 	"net/http"
 	"strings"
-	"github.com/tokenme/adx/utils/verify253"
 )
 
 type SendRequest struct {
@@ -20,11 +20,12 @@ func SendHandler(c *gin.Context) {
 	if CheckErr(c.Bind(&req), c) {
 		return
 	}
+	//fmt.Printf("req: %s\n", Json(req))
 	mobile := strings.Replace(req.Mobile, " ", "", 0)
-	if req.Country == 86{
-	verify253.AuthSend(mobile,c)
+	if req.Country == 86 {
+		verify253.AuthSend(mobile, c)
 		return
-		}
+	}
 	ret, err := twilio.AuthSend(Config.TwilioToken, mobile, req.Country)
 	if CheckErr(err, c) {
 		raven.CaptureError(err, nil)
