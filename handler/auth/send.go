@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"time"
 	"github.com/tokenme/adx/tools/zz253"
-	"log"
 	"bytes"
 	"math/rand"
 )
@@ -64,7 +63,6 @@ func ChinaSend(telephone string) (error, string){
 		Account:  Config.Zz253.Account,
 		Password: Config.Zz253.Password,
 	}
-	log.Println(apiReq.BaseRequest)
 	_, err = zz253.Send(&apiReq)
 	if err != nil {
 		return err, "短信发送失败"
