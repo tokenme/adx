@@ -30,12 +30,19 @@ func IndexMediaHander(c *gin.Context) {
 		c.JSON(http.StatusNotFound, "Not Find Media")
 		return
 	}
+	img := &common.PrivateAuctionCreative{
+		Img:row[0].Str(resut.Map("url")),
+	}
+	ImgUrl := ""
+	if img.Url != ""{
+		ImgUrl=img.GetImgUrl(Config)
+	}
 	Media := common.Media{
 		Id:           row[0].Uint64(resut.Map("id")),
 		UserId:       row[0].Uint64(resut.Map("user_id")),
 		Title:        row[0].Str(resut.Map("title")),
 		Domain:       row[0].Str(resut.Map("domain")),
-		ImgUrl:       row[0].Str(resut.Map("url")),
+		ImgUrl:       ImgUrl,
 		Verified:     row[0].Uint(resut.Map("verified")),
 		OnlineStatus: row[0].Uint(resut.Map("online_status")),
 		Mobile:       row[0].Str(resut.Map("mobile")),
@@ -74,12 +81,18 @@ func MediaInfoHandler(c *gin.Context) {
 	CheckErr(err, c)
 	info := []common.Media{}
 	for _, value := range row {
+		ImgUrl := ""
+		placeholder := &common.PrivateAuctionCreative{}
+		if value.Str(resut.Map("url")) != "" {
+			placeholder.Img = value.Str(resut.Map("url"))
+			ImgUrl = placeholder.GetImgUrl(Config)
+		}
 		Media := common.Media{
 			Id:           value.Uint64(resut.Map("id")),
 			UserId:       value.Uint64(resut.Map("user_id")),
 			Title:        value.Str(resut.Map("title")),
 			Domain:       value.Str(resut.Map("domain")),
-			ImgUrl:       value.Str(resut.Map("url")),
+			ImgUrl:       ImgUrl,
 			Verified:     value.Uint(resut.Map("verified")),
 			OnlineStatus: value.Uint(resut.Map("online_status")),
 			Mobile:       value.Str(resut.Map("mobile")),
