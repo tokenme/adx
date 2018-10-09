@@ -78,14 +78,15 @@ type GinJWTMiddleware struct {
 
 // Login form structure.
 type Login struct {
-	Mobile       string `form:"mobile" json:"mobile"`
-	CountryCode  uint   `form:"country_code" json:"country_code"`
-	Email        string `form:"email" json:"email"`
-	Password     string `form:"password" json:"password"`
-	Telegram     string `form:"telegram" json:"telegram"`
-	IsAdmin      uint   `form:"is_admin" json:"is_admin"`
-	IsPublisher  uint   `form:"is_publisher" json:"is_publisher"`
-	IsAdvertiser uint   `form:"is_advertiser" json:"is_advertiser"`
+	Mobile             string `form:"mobile" json:"mobile"`
+	CountryCode        uint   `form:"country_code" json:"country_code"`
+	Email              string `form:"email" json:"email"`
+	Password           string `form:"password" json:"password"`
+	Telegram           string `form:"telegram" json:"telegram"`
+	IsAdmin            uint   `form:"is_admin" json:"is_admin"`
+	IsPublisher        uint   `form:"is_publisher" json:"is_publisher"`
+	IsAirdropPublisher uint   `form:"is_airdrop_publisher" json:"is_airdrop_publisher"`
+	IsAdvertiser       uint   `form:"is_advertiser" json:"is_advertiser"`
 }
 
 // MiddlewareInit initialize jwt configs.

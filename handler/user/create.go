@@ -17,15 +17,16 @@ import (
 )
 
 type CreateRequest struct {
-	Mobile       string `form:"mobile" json:"mobile"`
-	CountryCode  uint   `form:"country_code" json:"country_code"`
-	VerifyCode   string `form:"verify_code" json:"verify_code"`
-	Email        string `form:"email" json:"email"`
-	Password     string `form:"passwd" json:"passwd" binding:"required"`
-	RePassword   string `form:"repasswd" json:"repasswd" binding:"required"`
-	Telegram     string `form:"telegram" json:"telegram"`
-	IsPublisher  uint   `form:"is_publisher" json:"is_publisher"`
-	IsAdvertiser uint   `form:"is_advertiser" json:"is_advertiser"`
+	Mobile             string `form:"mobile" json:"mobile"`
+	CountryCode        uint   `form:"country_code" json:"country_code"`
+	VerifyCode         string `form:"verify_code" json:"verify_code"`
+	Email              string `form:"email" json:"email"`
+	Password           string `form:"passwd" json:"passwd" binding:"required"`
+	RePassword         string `form:"repasswd" json:"repasswd" binding:"required"`
+	Telegram           string `form:"telegram" json:"telegram"`
+	IsPublisher        uint   `form:"is_publisher" json:"is_publisher"`
+	IsAdvertiser       uint   `form:"is_advertiser" json:"is_advertiser"`
+	IsAirdropPublisher uint   `form:"is_airdrop_publisher" json:"is_airdrop_publisher"`
 }
 
 func CreateHandler(c *gin.Context) {
@@ -38,7 +39,7 @@ func CreateHandler(c *gin.Context) {
 	if Check(req.Email == "" && req.Mobile == "", "missing email and mobile", c) {
 		return
 	}
-	if Check(req.IsPublisher != 1 && req.IsAdvertiser != 1, "missing account type", c) {
+	if Check(req.IsPublisher != 1 && req.IsAdvertiser != 1 && req.IsAirdropPublisher != 1, "missing account type", c) {
 		return
 	}
 	passwdLength := len(req.Password)
@@ -96,11 +97,11 @@ func CreateHandler(c *gin.Context) {
 	db := Service.Db
 	var res mysql.Result
 	if req.Email != "" && req.Mobile != "" {
-		_, res, err = db.Query(`INSERT INTO adx.users (country_code, mobile, email, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser) VALUES (%d, '%s', '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d)`, req.CountryCode, db.Escape(mobile), db.Escape(req.Email), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser)
+		_, res, err = db.Query(`INSERT INTO adx.users (country_code, mobile, email, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser, is_airdrop_publisher) VALUES (%d, '%s', '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d, %d)`, req.CountryCode, db.Escape(mobile), db.Escape(req.Email), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser, req.IsAirdropPublisher)
 	} else if req.Email != "" {
-		_, res, err = db.Query(`INSERT INTO adx.users (email, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser) VALUES ('%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d)`, db.Escape(req.Email), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser)
+		_, res, err = db.Query(`INSERT INTO adx.users (email, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser, is_airdrop_publisher) VALUES ('%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d, %d)`, db.Escape(req.Email), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser, req.IsAirdropPublisher)
 	} else if req.Mobile != "" {
-		_, res, err = db.Query(`INSERT INTO adx.users (country_code, mobile, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser) VALUES (%d, '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d)`, req.CountryCode, db.Escape(mobile), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser)
+		_, res, err = db.Query(`INSERT INTO adx.users (country_code, mobile, passwd, salt, activation_code, active, telegram_id, telegram_username, telegram_firstname, telegram_lastname, telegram_avatar, is_publisher, is_advertiser, is_airdrop_publisher) VALUES (%d, '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', '%s', %d, %d, %d)`, req.CountryCode, db.Escape(mobile), db.Escape(passwd), db.Escape(salt), db.Escape(activationCode), active, telegram.Id, db.Escape(telegram.Username), db.Escape(telegram.Firstname), db.Escape(telegram.Lastname), db.Escape(telegram.Avatar), req.IsPublisher, req.IsAdvertiser, req.IsAirdropPublisher)
 	}
 	if err != nil && err.(*mysql.Error).Code == mysql.ER_DUP_ENTRY {
 		if req.Email != "" {
@@ -127,10 +128,11 @@ func CreateHandler(c *gin.Context) {
 	}
 	if req.Email != "" {
 		user := common.User{
-			Email:          req.Email,
-			ActivationCode: activationCode,
-			IsPublisher:    req.IsPublisher,
-			IsAdvertiser:   req.IsAdvertiser,
+			Email:              req.Email,
+			ActivationCode:     activationCode,
+			IsPublisher:        req.IsPublisher,
+			IsAdvertiser:       req.IsAdvertiser,
+			IsAirdropPublisher: req.IsAirdropPublisher,
 		}
 		if err = EmailQueue.NewRegister(user); CheckErr(err, c) {
 			raven.CaptureError(err, nil)

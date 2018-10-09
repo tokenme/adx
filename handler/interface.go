@@ -11,12 +11,13 @@ import (
 	"github.com/tokenme/adx/common"
 	adServer "github.com/tokenme/adx/tools/ad/server"
 	"github.com/tokenme/adx/tools/sqs"
+	"github.com/tokenme/adx/tools/tracker"
 	"net"
 	"net/http"
+	"path"
+	"runtime"
 	"strconv"
 	"strings"
-	"runtime"
-	"path"
 )
 
 var (
@@ -26,11 +27,13 @@ var (
 	AdClickQueue *sqs.AdClickQueue
 	AdImpQueue   *sqs.AdImpQueue
 	AdServer     *adServer.Server
+	Tracker      *tracker.Tracker
 )
 
-func InitHandler(s *common.Service, c common.Config, ad *adServer.Server, emailQueue *sqs.EmailQueue, adClickQueue *sqs.AdClickQueue, adImpQueue *sqs.AdImpQueue) {
+func InitHandler(s *common.Service, c common.Config, ad *adServer.Server, emailQueue *sqs.EmailQueue, adClickQueue *sqs.AdClickQueue, adImpQueue *sqs.AdImpQueue, t *tracker.Tracker) {
 	Service = s
 	Config = c
+	Tracker = t
 	AdServer = ad
 	EmailQueue = emailQueue
 	AdClickQueue = adClickQueue

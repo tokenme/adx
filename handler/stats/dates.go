@@ -62,12 +62,12 @@ func DatesHandler(c *gin.Context) {
 	startDateStr := startDate.Format("2006-01-02")
 	endDateStr := endDate.Format("2006-01-02")
 
-	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1 && user.IsAdmin != 1 && user.IsAdmin != 1, "unauthorized", c) {
+	if Check(user.IsPublisher != 1 && user.IsAdvertiser != 1 && user.IsAirdropPublisher != 1 && user.IsAdmin != 1, "unauthorized", c) {
 		return
 	}
 	if user.IsPublisher == 1 {
 		wheres = append(wheres, fmt.Sprintf("PublisherId=%d", user.Id))
-	} else if user.IsAdvertiser == 1 {
+	} else if user.IsAdvertiser == 1 || user.IsAirdropPublisher == 1 {
 		wheres = append(wheres, fmt.Sprintf("AdvertiserId=%d", user.Id))
 	}
 

@@ -80,7 +80,7 @@ WHERE pa.online_status=1%s`
 		page    = req.Page
 		orderBy string
 	)
-	if user.IsAdvertiser == 1 {
+	if user.IsAdvertiser == 1 || user.IsAirdropPublisher == 1 {
 		wheres = append(wheres, fmt.Sprintf("pa.user_id=%d", user.Id))
 		orderBy = "pa.id DESC"
 	} else if user.IsPublisher == 1 || user.IsAdmin == 1 {
