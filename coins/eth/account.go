@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/garyburd/redigo/redis"
+	"github.com/mkideal/log"
 	"math/big"
 )
 
@@ -96,4 +99,30 @@ func Transfer(transactor *bind.TransactOpts, client *ethclient.Client, ctx conte
 
 func BalanceOf(client *ethclient.Client, ctx context.Context, addr string) (*big.Int, error) {
 	return client.BalanceAt(ctx, common.HexToAddress(addr), nil)
+}
+
+func Nonce(ctx context.Context, client *ethclient.Client, redisConn *redis.Pool, addr string, chain string) (uint64, error) {
+	conn := redisConn.Get()
+	defer conn.Close()
+	key := fmt.Sprintf("%s-%s", addr, chain)
+	nonceSaved, _ := redis.Uint64(conn.Do("GET", key))
+	nonce, err := client.PendingNonceAt(ctx, common.HexToAddress(addr))
+	if err != nil {
+		return 0, err
+	}
+	if nonceSaved < nonce {
+		log.Warn("UPDATE nonce: %d, saved: %d", nonce, nonceSaved)
+		conn.Do("SET", key, nonce)
+		return nonce, nil
+	}
+	log.Warn("nonce: %d, saved: %d", nonce, nonceSaved)
+	return nonceSaved, nil
+}
+
+func NonceIncr(ctx context.Context, client *ethclient.Client, redisConn *redis.Pool, addr string, chain string) error {
+	conn := redisConn.Get()
+	defer conn.Close()
+	key := fmt.Sprintf("%s-%s", addr, chain)
+	_, err := conn.Do("INCR", key)
+	return err
 }

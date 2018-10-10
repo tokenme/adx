@@ -47,7 +47,7 @@ func GetHandler(c *gin.Context) {
 		escapedQ := db.Escape(q)
 		where = fmt.Sprintf("name='%s' OR symbol='%s'", escapedQ, escapedQ)
 	}
-	rows, _, err := db.Query(`SELECT address, name, symbol, decimals, protocol, logo, summary, website, blog, telegram, facebook, twitter, whitepaper, email FROM tokenme.tokens WHERE %s LIMIT 1`, where)
+	rows, _, err := db.Query(`SELECT address, name, symbol, decimals, protocol, logo, summary, website, blog, telegram, facebook, twitter, whitepaper, email FROM adx.tokens WHERE %s LIMIT 1`, where)
 	if CheckErr(err, c) {
 		return
 	}
@@ -107,7 +107,7 @@ func GetHandler(c *gin.Context) {
 		Decimals: uint(tokenDecimals),
 		Protocol: "ERC20",
 	}
-	_, _, err = db.Query(`INSERT IGNORE INTO tokenme.tokens (address, name, symbol, decimals, protocol) VALUES ('%s', '%s', '%s', %d, '%s')`, db.Escape(token.Address), db.Escape(token.Name), db.Escape(token.Symbol), token.Decimals, token.Protocol)
+	_, _, err = db.Query(`INSERT IGNORE INTO adx.tokens (address, name, symbol, decimals, protocol) VALUES ('%s', '%s', '%s', %d, '%s')`, db.Escape(token.Address), db.Escape(token.Name), db.Escape(token.Symbol), token.Decimals, token.Protocol)
 	if CheckErr(err, c) {
 		return
 	}

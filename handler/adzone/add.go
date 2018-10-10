@@ -25,7 +25,7 @@ type AddRequest struct {
 	Traffic        string  `from:"traffic" json:"traffic" `
 }
 
-func AddHandler(c *gin .Context) {
+func AddHandler(c *gin.Context) {
 	var req AddRequest
 	if CheckErr(c.Bind(&req), c) {
 		return
