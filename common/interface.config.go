@@ -44,8 +44,8 @@ type Config struct {
 }
 
 type Sms struct {
-	Account  string `default:"N5692616"`
-	Password string `default:"4mNud0qth"`
+	Account  string
+	Password string
 }
 
 type AirdropConfig struct {
