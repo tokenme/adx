@@ -27,7 +27,11 @@ func SendHandler(c *gin.Context) {
 	//fmt.Printf("req: %s\n", Json(req))
 	mobile := strings.Replace(req.Mobile, " ", "", 0)
 	if req.Country == 86 {
-		ChinaSend(mobile)
+		err,msg := ChinaSend(mobile)
+		if Check(err!=nil||msg!="",msg,c){
+			return
+		}
+		c.JSON(http.StatusOK, APIResponse{Msg: "ok"})
 		return
 	}
 	ret, err := twilio.AuthSend(Config.TwilioToken, mobile, req.Country)
