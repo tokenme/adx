@@ -12,7 +12,6 @@ import (
 	"time"
 	"math/rand"
 	"bytes"
-	"github.com/tokenme/adx/utils/verify253"
 )
 
 type SendRequest struct {
