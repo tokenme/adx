@@ -161,9 +161,12 @@ func TrafficListHandler(c *gin.Context) {
 			2.30, 2.40, 2.50, 2.60, 2.70, 2.80, 2.90,
 			3.00, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60,
 			3.70, 3.80, 3.90, 4.00}
+		b :=[]float64{3.00, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60,
+			3.70, 3.80, 3.90, 4.00}
 		for _, value := range rows {
 			Response := Response{}
 			rands := rand.Int63n(int64(len(a[:])) - 1)
+			randb := rand.Int63n(int64(len(b[:])) - 1)
 			Response.MediaName = value.Str(Result.Map(`title`))
 			Response.Id = value.Uint64(Result.Map(`id`))
 			/*
@@ -214,7 +217,7 @@ func TrafficListHandler(c *gin.Context) {
 						}
 			*/
 			Response.PV = uint64(rand.Int63n(50000) + int64(50000*a[rands]))
-			Response.UV = uint64(float64(Response.PV) / a[rands])
+			Response.UV = uint64(float64(Response.PV) / b[randb])
 			Response.Clicks = Response.PV / uint64(rand.Int63n(10)+10)
 			Response.Ctr = fmt.Sprintf("%.2f", float64(Response.Clicks)/float64(Response.PV)*100) + "%"
 			Res = append(Res, Response)
